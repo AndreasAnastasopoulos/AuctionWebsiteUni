@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="el">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- For some icons -->
+    <link rel="stylesheet" href="style.css">
+    <title>PAREDÓSE - Online Auction Platform</title>
+</head>
+
+<body>
+    <!-- Welcome Page -->
+    <div id="welcomePage" class="welcome-container">
+        <div class="welcome-card">
+            <h1 class="logo">PAREDÓSE.</h1>
+            <p class="tagline">The Online Auction Platform</p>
+            <button class="btn btn-primary" onclick="showSignIn()">Sign In</button>
+            <button class="btn btn-secondary" onclick="showSignUp()">Sign Up</button>
+            <button class="btn btn-outline" onclick="showViewer()">Browse as Viewer</button>
+        </div>
+    </div>
+
+    <!-- Sign In Form -->
+    <div id="signInPage" class="form-container">
+        <div class="form-card">
+            <div class="form-header">
+                <h2>Welcome Back!</h2>
+                <p>Sign in to your account</p>
+            </div>
+            <form onsubmit="handleSignIn(event)">
+                <div class="form-group">
+                    <label for="signin-username">Username</label>
+                    <input type="text" id="signin-username" required>
+                </div>
+                <div class="form-group">
+                    <label for="signin-password">Password</label>
+                    <input type="password" id="signin-password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Sign In</button>
+            </form>
+            <div class="back-btn">
+                <a href="#" onclick="showWelcome()">Back to Welcome</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sign Up Form -->
+    <div id="signUpPage" class="form-container">
+        <div class="form-card">
+            <div class="form-header">
+                <h2>Create Account</h2>
+                <p>Join our auction community</p>
+            </div>
+            <div id="usernameError" class="error-message">
+                Username already exists. Please choose another username.
+            </div>
+            <form onsubmit="handleSignUp(event)">
+                <div class="form-group">
+                    <label for="signup-username">Username</label>
+                    <input type="text" id="signup-username" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-password">Password</label>
+                    <input type="password" id="signup-password" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-confirm-password">Confirm Password</label>
+                    <input type="password" id="signup-confirm-password" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-fullname">Full Name and Surname</label>
+                    <input type="text" id="signup-fullname" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-email">Email</label>
+                    <input type="email" id="signup-email" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-phone">Phone Number</label>
+                    <input type="tel" id="signup-phone" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-address">Address and Location</label>
+                    <input type="text" id="signup-address" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-ssn">Social Security Number</label>
+                    <input type="text" id="signup-ssn" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Sign Up</button>
+            </form>
+            <div class="back-btn">
+                <a href="#" onclick="showWelcome()">Back to Welcome</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Waiting Page -->
+    <div id="waitingPage" class="waiting-container">
+        <div class="waiting-card">
+            <div class="success-icon">✓</div>
+            <h2>Application Submitted!</h2>
+            <p class="waiting-message">
+                Thank you for signing up! Your application is pending approval.<br>
+                Our admin team will review your information shortly.<br>
+                You will receive an email notification once your account is approved.
+            </p>
+            <button class="btn btn-primary" onclick="showWelcome()">Return to Welcome</button>
+        </div>
+    </div>
+
+    <!-- Viewer Page -->
+    <div id="viewerPage" class="viewer-container">
+        <header class="viewer-header">
+            <div class="header-content">
+                <h1 class="logo">PAREDÓSE.</h1>
+                <div class="viewer-notice">Viewing as Guest</div>
+            </div>
+        </header>
+
+        <section class="products-section">
+            <h2 class="section-title">Featured Auctions</h2>
+            <div class="products-grid">
+                <div class="product-card">
+                    <div class="product-image">Product Image</div>
+                    <div class="product-info">
+                        <h3 class="product-title">Vintage Camera</h3>
+                        <div class="current-bid">$250</div>
+                        <div class="bid-info">Current bid • 5 bids • 2 days left</div>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <div class="product-image">Product Image</div>
+                    <div class="product-info">
+                        <h3 class="product-title">Antique Watch</h3>
+                        <div class="current-bid">$450</div>
+                        <div class="bid-info">Current bid • 8 bids • 1 day left</div>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <div class="product-image">Product Image</div>
+                    <div class="product-info">
+                        <h3 class="product-title">Art Painting</h3>
+                        <div class="current-bid">$1,200</div>
+                        <div class="bid-info">Current bid • 12 bids • 3 days left</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="viewer-cta">
+            <h3>Want to place bids?</h3>
+            <p>Sign up now to participate in auctions and start bidding on amazing items!</p>
+            <a href="#" class="cta-button" onclick="showSignUp()">Sign Up Now</a>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <div class="container">
+                <div class="footer-divider"></div>
+                <div class="footer-content">
+                    <div class="footer-logo-and-social">
+                        <span class="logo-footer">PAREDÓSE.</span>
+                        <a href="#" target="_blank" class="social-link">
+                            <i class="fa-brands fa-github"></i>
+                        </a>
+                    </div>
+                    <div class="footer-contact">
+                        <div class="contact-item">
+                            <i class="fas fa-phone"></i>
+                            <span><a href="tel:+306948202941">6948202941</a></span>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-envelope"></i>
+                            <span><a href="mailto:sdi1900009@di.uoa.gr">sdi1900009@di.uoa.gr</a></span>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Athens, Attica, Greece</span>
+                        </div>
+                    </div>
+                </div>
+                <p style="font-size: 0.9rem;">© 2025 PAREDÓSE. <br> Made with love by <br> Αναστασόπουλος Ανδρέας &
+                    Αθανασόπουλος Πέτρος-Ερμής</p>
+            </div>
+        </footer>
+
+        <!-- Back to Top Button -->
+        <div class="back-to-top">
+            <i class="fas fa-arrow-up"></i>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
