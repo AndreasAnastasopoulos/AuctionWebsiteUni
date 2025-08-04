@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- For some icons -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- For the map -->
     <link rel="stylesheet" href="style.css">
     <title>PAREDÓSE - Online Auction Platform</title>
 </head>
@@ -46,7 +49,7 @@
         </div>
     </div>
 
-    <!-- Sign Up Form -->
+    <!-- Sign up form -->
     <div id="signUpPage" class="form-container">
         <div class="form-card">
             <div class="form-header">
@@ -57,38 +60,79 @@
                 Username already exists. Please choose another username.
             </div>
             <form onsubmit="handleSignUp(event)">
-                <div class="form-group">
-                    <label for="signup-username">Username</label>
-                    <input type="text" id="signup-username" required>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="signup-username">Username</label>
+                        <input type="text" id="signup-username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-fullname">Full Name</label>
+                        <input type="text" id="signup-fullname" required>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="signup-password">Password</label>
-                    <input type="password" id="signup-password" required>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="signup-password">Password</label>
+                        <input type="password" id="signup-password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-confirm-password">Confirm Password</label>
+                        <input type="password" id="signup-confirm-password" required>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="signup-confirm-password">Confirm Password</label>
-                    <input type="password" id="signup-confirm-password" required>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="signup-email">Email</label>
+                        <input type="email" id="signup-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-phone">Phone Number</label>
+                        <input type="tel" id="signup-phone" required>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="signup-fullname">Full Name and Surname</label>
-                    <input type="text" id="signup-fullname" required>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="signup-address">Street Name</label>
+                        <input type="text" id="signup-address" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-address-number">Street Number</label>
+                        <input type="text" id="signup-address-number" required>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="signup-email">Email</label>
-                    <input type="email" id="signup-email" required>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="signup-city-country">City, Country</label>
+                        <input type="text" id="signup-city-country" placeholder="e.g., Athens, Greece" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-ssn">Social Security Number</label>
+                        <input type="text" id="signup-ssn" required>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="signup-phone">Phone Number</label>
-                    <input type="tel" id="signup-phone" required>
+
+                <!-- Location Selection Section -->
+                <div class="location-section">
+                    <h3>Confirm Your Location</h3>
+                    <p class="location-help">Click on the map to set your exact location or use the search button</p>
+                    <div class="location-controls">
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="geocodeAddress()">
+                            <i class="fas fa-search"></i> Find My Address on Map
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="getCurrentLocation()">
+                            <i class="fas fa-location-arrow"></i> Use Current Location
+                        </button>
+                    </div>
+                    <div id="signup-map" class="signup-map"></div>
+                    <div class="coordinates-display">
+                        <span>Selected Location: </span>
+                        <span id="selected-coords">Not set</span>
+                    </div>
+                    <!-- Hidden fields for coordinates -->
+                    <input type="hidden" id="signup-latitude" name="latitude">
+                    <input type="hidden" id="signup-longitude" name="longitude">
                 </div>
-                <div class="form-group">
-                    <label for="signup-address">Address and Location</label>
-                    <input type="text" id="signup-address" required>
-                </div>
-                <div class="form-group">
-                    <label for="signup-ssn">Social Security Number</label>
-                    <input type="text" id="signup-ssn" required>
-                </div>
+
                 <button type="submit" class="btn btn-primary">Sign Up</button>
             </form>
             <div class="back-btn">
@@ -116,13 +160,16 @@
         <header class="viewer-header">
             <div class="header-content">
                 <h1 class="logo">PAREDÓSE.</h1>
-                <div class="viewer-notice">Viewing as Guest</div>
+                <div id="headerRight" class="header-right">
+                    <!-- This will be dynamically populated -->
+                    <div class="viewer-notice">Viewing as Guest</div>
+                </div>
             </div>
         </header>
 
         <section class="products-section">
             <h2 class="section-title">Featured Auctions</h2>
-            <div class="products-grid">
+            <!--             <div class="products-grid">
                 <div class="product-card">
                     <div class="product-image">Product Image</div>
                     <div class="product-info">
@@ -147,8 +194,47 @@
                         <div class="bid-info">Current bid • 12 bids • 3 days left</div>
                     </div>
                 </div>
-            </div>
+            </div> -->
         </section>
+
+        <div class="products-map-container">
+            <div class="products-map-header">
+                <h2 class="section-title">Auction Locations</h2>
+                <button class="btn btn-secondary btn-sm" onclick="toggleMapView()">
+                    <i class="fas fa-map"></i> <span id="mapToggleText">Show Map</span>
+                </button>
+            </div>
+
+            <div id="mapSection" style="display: none;">
+                <!-- Location Search -->
+                <div class="map-search-bar">
+                    <input type="text" id="locationSearch" placeholder="Search location (e.g., Athens, Greece)">
+                    <button class="btn btn-primary btn-sm" onclick="searchLocation()">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                    <button class="btn btn-secondary btn-sm" onclick="searchNearMe()">
+                        <i class="fas fa-location-arrow"></i> Near Me
+                    </button>
+                </div>
+
+                <!-- Distance Filter -->
+                <!--                 <div class="location-filter">
+                    <label>Search Radius:</label>
+                    <input type="range" id="radiusSlider" min="1" max="100" value="50" onchange="updateRadius()">
+                    <span class="range-value"><span id="radiusValue">50</span> km</span>
+                    <button class="btn btn-primary btn-sm" onclick="applyLocationFilter()">Apply</button>
+                </div> -->
+
+                <!-- Map Container -->
+                <div id="products-map" class="products-map"></div>
+
+                <!-- Map Legend -->
+                <div class="map-legend">
+                    <p><i class="fas fa-map-marker-alt" style="color: #2980b9;"></i> Product Locations</p>
+                    <p><i class="fas fa-circle" style="color: #e74c3c;"></i> Your Location</p>
+                </div>
+            </div>
+        </div>
 
         <div class="viewer-cta">
             <h3>Want to place bids?</h3>
@@ -199,5 +285,16 @@
         </div>
     </div>
     <script src="script.js"></script>
+
+    <div id="bidModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeBidModal()">&times;</span>
+            <h3>Place Your Bid</h3>
+            <p>Current price: $<span id="currentPrice"></span></p>
+            <input type="number" id="bidAmount" step="0.01" min="0" placeholder="Enter your bid">
+            <button class="btn btn-primary" onclick="submitBid()">Submit Bid</button>
+        </div>
+    </div>
 </body>
+
 </html>

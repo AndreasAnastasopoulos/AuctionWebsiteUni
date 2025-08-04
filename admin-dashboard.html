@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="admin-styles.css">
+    <title>Admin Dashboard - PAREDÓSE</title>
+</head>
+
+<body>
+    <div id="adminDashboard" class="admin-container">
+        <!-- Admin Header -->
+        <header class="admin-header">
+            <div class="header-content">
+                <h1 class="logo">PAREDÓSE.</h1>
+                <div class="admin-menu">
+                    <span class="admin-badge">Admin Panel</span>
+                    <span id="adminName">Administrator</span>
+                    <button class="btn btn-sm btn-outline" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Admin Navigation -->
+        <nav class="admin-nav">
+            <button class="nav-btn active" onclick="showSection('users')">
+                <i class="fas fa-users"></i> Users
+            </button>
+            <button class="nav-btn" onclick="showSection('products')">
+                <i class="fas fa-gavel"></i> Auctions
+            </button>
+            <button class="nav-btn" onclick="showSection('stats')">
+                <i class="fas fa-chart-bar"></i> Statistics
+            </button>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="admin-main">
+            <!-- Users Section -->
+            <section id="usersSection" class="admin-section active">
+                <h2>User Management</h2>
+
+                <!-- User Filters -->
+                <div class="filters-bar">
+                    <select id="userStatusFilter" onchange="filterUsers()">
+                        <option value="">All Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="active">Active</option>
+                        <option value="suspended">Suspended</option>
+                    </select>
+                    <select id="userRoleFilter" onchange="filterUsers()">
+                        <option value="">All Roles</option>
+                        <option value="viewer">Viewer</option>
+                        <option value="bidder">Bidder</option>
+                        <option value="seller">Seller</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                    <input type="text" id="userSearch" placeholder="Search users..." oninput="filterUsers()">
+                </div>
+
+                <!-- Pending Users Alert -->
+                <div id="pendingAlert" class="alert alert-warning" style="display: none;">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span id="pendingCount">0</span> users waiting for approval
+                </div>
+
+                <!-- Users Table -->
+                <div class="table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Full Name</th>
+                                <th>Email</th>
+                                <th>Status</th>
+                                <th>Role</th>
+                                <th>Joined</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <tr>
+                                <td colspan="7" class="loading">Loading users...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Products Section -->
+            <section id="productsSection" class="admin-section">
+                <h2>Auction Management</h2>
+
+                <!-- Product Filters -->
+                <div class="filters-bar">
+                    <select id="productStatusFilter" onchange="filterProducts()">
+                        <option value="">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="ended">Ended</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                    <input type="text" id="productSearch" placeholder="Search products..." oninput="filterProducts()">
+                    <button class="btn btn-primary btn-sm" onclick="showCreateProduct()">
+                        <i class="fas fa-plus"></i> Create Test Auction
+                    </button>
+                </div>
+
+                <!-- Products Table -->
+                <div class="table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Seller</th>
+                                <th>Category</th>
+                                <th>Current Price</th>
+                                <th>Bids</th>
+                                <th>Status</th>
+                                <th>End Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productsTableBody">
+                            <tr>
+                                <td colspan="8" class="loading">Loading products...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Statistics Section -->
+            <section id="statsSection" class="admin-section">
+                <h2>Platform Statistics</h2>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <i class="fas fa-users"></i>
+                        <h3>Total Users</h3>
+                        <p class="stat-number" id="totalUsers">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-gavel"></i>
+                        <h3>Active Auctions</h3>
+                        <p class="stat-number" id="activeAuctions">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-hand-paper"></i>
+                        <h3>Total Bids</h3>
+                        <p class="stat-number" id="totalBids">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-clock"></i>
+                        <h3>Pending Approvals</h3>
+                        <p class="stat-number" id="pendingApprovals">0</p>
+                    </div>
+                </div>
+
+                <div class="recent-activity">
+                    <h3>Recent Activity</h3>
+                    <div id="activityLog" class="activity-log">
+                        <p class="no-activity">No recent activity</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- User Edit Modal -->
+    <div id="userModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeUserModal()">&times;</span>
+            <h3>Edit User</h3>
+            <form id="userEditForm" onsubmit="saveUserChanges(event)">
+                <input type="hidden" id="editUserId">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="editUsername" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="editStatus">
+                        <option value="pending">Pending</option>
+                        <option value="active">Active</option>
+                        <option value="suspended">Suspended</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Role</label>
+                    <select id="editRole">
+                        <option value="viewer">Viewer</option>
+                        <option value="bidder">Bidder</option>
+                        <option value="seller">Seller</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create Product Modal -->
+    <div id="productModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeProductModal()">&times;</span>
+            <h3>Create Test Auction</h3>
+            <form id="productCreateForm" onsubmit="createProduct(event)">
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" id="productTitle" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="productDescription" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="productCategory" required>
+                        <option value="">Select Category</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Art">Art</option>
+                        <option value="Jewelry">Jewelry</option>
+                        <option value="Books">Books</option>
+                        <option value="Collectibles">Collectibles</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Starting Price</label>
+                    <input type="number" id="productPrice" min="1" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label>Auction Duration (days)</label>
+                    <input type="number" id="productDuration" min="1" max="30" value="7" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Create Auction</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="admin-script.js"></script>
+</body>
+
+</html>
