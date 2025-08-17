@@ -18,8 +18,8 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static files (HTML, CSS, JS) from parent directory
-app.use(express.static(path.join(__dirname)));
+// Serve static files (HTML, CSS, JS) from the 'client' directory
+app.use(express.static(path.join(__dirname, 'client')));
 
 // Import routes
 const authRoutes = require('./routes/authRoutes.js');
@@ -35,7 +35,7 @@ app.use('/api/bids', bidRoutes);
 
 // Serve index.html for root route
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '/client/index.html'));
+    res.sendFile(path.join(__dirname, './client/index.html'));
 });
 
 // Error handling middleware
