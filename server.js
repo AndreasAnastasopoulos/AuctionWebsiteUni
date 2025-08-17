@@ -19,13 +19,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve static files (HTML, CSS, JS) from parent directory
-app.use(express.static(path.join(__dirname, '..')));
+app.use(express.static(path.join(__dirname,)));
 
 // Import routes
-const authRoutes = require('./routes/authRoutes');
-const userRoutes = require('./routes/userRoutes');
-const productRoutes = require('./routes/productRoutes');
-const bidRoutes = require('./routes/bidRoutes');
+const authRoutes = require('./paredose-backend/routes/authRoutes');
+const userRoutes = require('./paredose-backend/routes/userRoutes');
+const productRoutes = require('./paredose-backend/routes/productRoutes');
+const bidRoutes = require('./paredose-backend/routes/bidRoutes');
 
 // Use routes
 app.use('/api/auth', authRoutes);
@@ -35,7 +35,7 @@ app.use('/api/bids', bidRoutes);
 
 // Serve index.html for root route
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'index.html'));
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // Error handling middleware
