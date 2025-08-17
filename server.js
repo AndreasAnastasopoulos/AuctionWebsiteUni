@@ -19,13 +19,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve static files (HTML, CSS, JS) from parent directory
-app.use(express.static(path.join(__dirname,)));
+app.use(express.static(path.join(__dirname)));
 
 // Import routes
-const authRoutes = require('./paredose-backend/routes/authRoutes');
-const userRoutes = require('./paredose-backend/routes/userRoutes');
-const productRoutes = require('./paredose-backend/routes/productRoutes');
-const bidRoutes = require('./paredose-backend/routes/bidRoutes');
+const authRoutes = require('./routes/authRoutes.js');
+const userRoutes = require('./routes/userRoutes.js');
+const productRoutes = require('./routes/productRoutes.js');
+const bidRoutes = require('./routes/bidRoutes.js');
 
 // Use routes
 app.use('/api/auth', authRoutes);

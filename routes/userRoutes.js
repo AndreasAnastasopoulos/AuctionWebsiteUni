@@ -1,7 +1,7 @@
 // userRoutes.js
 const express = require('express');
 const router = express.Router();
-const User = require('../../models/User');
+const User = require('../models/User');
 const { protect, requireActive, authorize } = require('../middleware/auth');
 
 // @route   GET /api/users/profile

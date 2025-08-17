@@ -1,8 +1,8 @@
 // bidRoutes.js
 const express = require('express');
 const router = express.Router();
-const Bid = require('../../models/Bid');
-const Product = require('../../models/Product');
+const Bid = require('../models/Bid');
+const Product = require('../models/Product');
 const { protect, requireActive } = require('../middleware/auth');
 
 // @route   POST /api/bids
