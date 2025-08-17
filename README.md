@@ -5,3 +5,6 @@ Nominatim API for geocoding we need to give credit
 administratos login:
 username: admin
 password: admin123
+
+To run the app and continues do changes with out strat stop every time run
+# npm run dev
