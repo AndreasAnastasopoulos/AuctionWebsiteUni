@@ -2,7 +2,7 @@
   "name": "paredose-auction-backend",
   "version": "1.0.0",
   "description": "Backend API for PAREDOSE auction platform",
-  "main": "server.js",
+  "main": "paredose-backend/server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js"
