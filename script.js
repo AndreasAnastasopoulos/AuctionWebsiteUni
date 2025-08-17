@@ -210,7 +210,7 @@ async function handleSignIn(event) {
             } else if (currentUser.status === 'active') {
                 // Redirect based on role
                 if (currentUser.role === 'admin') {
-                    window.location.href = '/admin-dashboard.html';
+                    window.location.href = 'client/admin-dashboard.html';
                 } else {
                     showAuctionPage();
                 }

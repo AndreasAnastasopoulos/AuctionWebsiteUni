@@ -35,7 +35,7 @@ app.use('/api/bids', bidRoutes);
 
 // Serve index.html for root route
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, '/client/index.html'));
 });
 
 // Error handling middleware
