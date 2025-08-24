@@ -38,6 +38,10 @@ async function createAdmin() {
             phone: '0000000000',
             address: 'Admin Office',
             ssn: '000-00-0000',
+            location: {
+                type: 'Point',
+                coordinates: [0, 0] // Default coordinates
+            },
             role: 'admin',
             status: 'active'
         });
