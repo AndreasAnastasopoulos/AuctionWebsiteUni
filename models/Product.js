@@ -1,10 +1,20 @@
 const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema({
-    title: {
+    name: {
         type: String,
         required: true,
         trim: true
+    },
+    category: [{ // Changed to an array of strings
+        type: String,
+        required: true
+    }],
+    currentPrice: {
+        type: Number,
+        default: function() {
+            return this.startingPrice;
+        }
     },
     description: {
         type: String,
@@ -15,23 +25,14 @@ const productSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
-    category: {
-        type: String,
-        required: true
-    },
     images: [{
         type: String
     }],
     startingPrice: {
         type: Number,
         required: true,
-        min: 0
-    },
-    currentPrice: {
-        type: Number,
-        default: function() {
-            return this.startingPrice;
-        }
+        min: 0,
+        default: 0
     },
     startDate: {
         type: Date,
@@ -50,17 +51,16 @@ const productSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     },
-    bidCount: {
-        type: Number,
-        default: 0
-    }
-}, {
-    timestamps: true
-});
+    // bids: [bidSchema]
+    location: String,
+    country: String
+}, 
+{ timestamps: true });
 
 // Index for efficient queries
 productSchema.index({ status: 1, endDate: 1 });
 productSchema.index({ seller: 1 });
 productSchema.index({ category: 1 });
+productSchema.index({ itemID: 1 }); // Added index for itemID
 
 module.exports = mongoose.model('Product', productSchema);

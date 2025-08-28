@@ -21,22 +21,16 @@ const userSchema = new mongoose.Schema({
         required: true,
         minlength: 6
     },
-    fullName: {
-        type: String,
-        required: true
-    },
-    phone: {
-        type: String,
-        required: true
-    },
-    address: {
-        type: String,
-        required: true
-    },
-    ssn: {
-        type: String,
-        required: true
-    },
+    firstName: { type: String, required: true },
+    lastName: { type: String, required: true },
+    phone: { type: String, required: true },
+    address: { type: String, required: true },
+    country: { type: String, required: true },
+    ssn: { //social security number
+        type: String, 
+        required: true,
+        unique: true 
+    }, 
     location: {
         type: {
             type: String,
@@ -65,7 +59,9 @@ const userSchema = new mongoose.Schema({
     createdAt: {
         type: Date,
         default: Date.now
-    }
+    },
+    bidderRating: { type: Number, default: 0 },
+    sellerRating: { type: Number, default: 0 },
 });
 
 // Create geospatial index for location queries
@@ -90,3 +86,4 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
 };
 
 module.exports = mongoose.model('User', userSchema);
+export default User;
