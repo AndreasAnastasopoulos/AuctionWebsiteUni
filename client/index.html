@@ -162,39 +162,94 @@
                 <h1 class="logo">PAREDÓSE.</h1>
                 <div id="headerRight" class="header-right">
                     <!-- This will be dynamically populated -->
-                    <div class="viewer-notice">Viewing as Guest</div>
+                    <button class="btn btn-primary" style="text-wrap: nowrap;" onclick="showSignIn()">Sign In</button>
+                    <button class="btn btn-secondary" style="text-wrap: nowrap;" onclick="showSignUp()">Sign Up</button>
                 </div>
             </div>
         </header>
 
         <section class="products-section">
             <h2 class="section-title">Featured Auctions</h2>
-            <!--             <div class="products-grid">
-                <div class="product-card">
-                    <div class="product-image">Product Image</div>
-                    <div class="product-info">
-                        <h3 class="product-title">Vintage Camera</h3>
-                        <div class="current-bid">$250</div>
-                        <div class="bid-info">Current bid • 5 bids • 2 days left</div>
-                    </div>
+
+            <!-- Filter and Search Bar -->
+            <div class="products-controls">
+                <div class="search-bar">
+                    <input type="text" id="productSearch" placeholder="Search auctions..." class="search-input">
+                    <button class="search-btn" onclick="searchProducts()">
+                        <i class="fas fa-search"></i>
+                    </button>
                 </div>
-                <div class="product-card">
-                    <div class="product-image">Product Image</div>
-                    <div class="product-info">
-                        <h3 class="product-title">Antique Watch</h3>
-                        <div class="current-bid">$450</div>
-                        <div class="bid-info">Current bid • 8 bids • 1 day left</div>
-                    </div>
+
+                <div class="filter-controls">
+                    <select id="categoryFilter" class="filter-select" onchange="filterProducts()">
+                        <option value="">All Categories</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Art">Art</option>
+                        <option value="Jewelry">Jewelry</option>
+                        <option value="Books">Books</option>
+                        <option value="Collectibles">Collectibles</option>
+                        <option value="Fashion">Fashion</option>
+                        <option value="Home">Home & Garden</option>
+                        <option value="Sports">Sports & Outdoors</option>
+                    </select>
+
+                    <select id="priceSort" class="filter-select" onchange="sortProducts()">
+                        <option value="">Sort by Price</option>
+                        <option value="low-high">Price: Low to High</option>
+                        <option value="high-low">Price: High to Low</option>
+                        <option value="ending-soon">Ending Soon</option>
+                        <option value="most-bids">Most Bids</option>
+                    </select>
+
+                    <button class="filter-btn" onclick="toggleAdvancedFilters()">
+                        <i class="fas fa-filter"></i> Filters
+                    </button>
                 </div>
-                <div class="product-card">
-                    <div class="product-image">Product Image</div>
-                    <div class="product-info">
-                        <h3 class="product-title">Art Painting</h3>
-                        <div class="current-bid">$1,200</div>
-                        <div class="bid-info">Current bid • 12 bids • 3 days left</div>
-                    </div>
+            </div>
+
+            <!-- Advanced Filters (Hidden by default) -->
+            <div id="advancedFilters" class="advanced-filters" style="display: none;">
+                <div class="price-range">
+                    <label>Price Range:</label>
+                    <input type="number" id="minPrice" placeholder="Min" class="price-input">
+                    <span>-</span>
+                    <input type="number" id="maxPrice" placeholder="Max" class="price-input">
                 </div>
-            </div> -->
+                <div class="time-filter">
+                    <label>Time Left:</label>
+                    <select id="timeFilter" class="filter-select">
+                        <option value="">Any Time</option>
+                        <option value="1">Ending in 1 day</option>
+                        <option value="3">Ending in 3 days</option>
+                        <option value="7">Ending in 7 days</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="applyFilters()">Apply Filters</button>
+                <button class="btn btn-secondary btn-sm" onclick="clearFilters()">Clear</button>
+            </div>
+
+            <!-- Products Grid -->
+            <div class="products-grid" id="productsGrid">
+                <!-- Products will be dynamically loaded here -->
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination" id="pagination">
+                <button class="page-btn" onclick="previousPage()" id="prevBtn">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class="page-numbers" id="pageNumbers">
+                    <!-- Page numbers will be dynamically generated -->
+                </div>
+                <button class="page-btn" onclick="nextPage()" id="nextBtn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+
+            <!-- Results Info -->
+            <div class="results-info">
+                Showing <span id="showingCount">0</span> of <span id="totalCount">0</span> auctions
+            </div>
         </section>
 
         <div class="products-map-container">
