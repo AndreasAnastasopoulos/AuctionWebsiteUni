@@ -1,7 +1,7 @@
 // Complete script.js for PAREDÓSE Auction Site
 
 // API Configuration
-const API_URL = 'http://localhost:5001/api';
+const API_URL = 'http://localhost:5000/api';
 let authToken = localStorage.getItem('authToken');
 let currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
 let currentProductId = null;
@@ -75,13 +75,7 @@ function showViewer() {
     // Reset header for guest viewers
     const headerRight = document.getElementById('headerRight');
     if (headerRight) {
-        headerRight.innerHTML = '<div class="viewer-notice">Viewing as Guest</div>';
-    }
-
-    // Show CTA for guests
-    const viewerCta = document.querySelector('.viewer-cta');
-    if (viewerCta) {
-        viewerCta.style.display = 'block';
+        headerRight.innerHTML = '<button class="btn btn-primary" style="text-wrap: nowrap;" onclick="showSignIn()">Sign In</button><button class="btn btn-secondary" style="text-wrap: nowrap;" onclick="showSignUp()">Sign Up</button>';
     }
 
     // Clear existing products
@@ -90,10 +84,8 @@ function showViewer() {
         productsGrid.innerHTML = '<p class="no-products">Loading auctions...</p>';
     }
 
-    // Load products for viewer after a short delay
-    setTimeout(() => {
-        loadProducts(true); // Load products for viewer
-    }, 100);
+    
+    loadProducts(true);
 }
 
 function showWaiting() {
@@ -364,12 +356,6 @@ function showAuctionPage() {
         console.error('headerRight not found!');
     }
 
-    // Hide CTA for signed-in users
-    const viewerCta = document.querySelector('.viewer-cta');
-    if (viewerCta) {
-        viewerCta.style.display = 'none';
-    }
-
     // Load products
     loadProducts(false);
 }
@@ -505,6 +491,413 @@ function getCurrentLocation() {
         }
     );
 }
+
+// Pagination and filtering variables
+let currentPage = 1;
+const productsPerPage = 9;
+let filteredProducts = [];
+let allProductsDisplay = [];
+
+// Sample products data (for testing without backend)
+const sampleProducts = [
+    {
+        _id: '1',
+        title: 'Vintage Leica Camera',
+        category: 'Electronics',
+        currentPrice: 850,
+        startingPrice: 500,
+        bidCount: 15,
+        endDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+        seller: { username: 'john_collector' }
+    },
+    {
+        _id: '2',
+        title: 'Abstract Oil Painting',
+        category: 'Art',
+        currentPrice: 1200,
+        startingPrice: 800,
+        bidCount: 8,
+        endDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+        seller: { username: 'art_dealer' }
+    },
+    {
+        _id: '3',
+        title: 'Antique Gold Watch',
+        category: 'Jewelry',
+        currentPrice: 2500,
+        startingPrice: 1500,
+        bidCount: 23,
+        endDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
+        seller: { username: 'luxury_items' }
+    },
+    {
+        _id: '4',
+        title: 'First Edition Hemingway',
+        category: 'Books',
+        currentPrice: 450,
+        startingPrice: 200,
+        bidCount: 12,
+        endDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000),
+        seller: { username: 'rare_books' }
+    },
+    {
+        _id: '5',
+        title: 'Vintage Baseball Cards',
+        category: 'Collectibles',
+        currentPrice: 780,
+        startingPrice: 300,
+        bidCount: 19,
+        endDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+        seller: { username: 'sports_memorabilia' }
+    },
+    {
+        _id: '6',
+        title: 'Designer Handbag',
+        category: 'Fashion',
+        currentPrice: 1800,
+        startingPrice: 1200,
+        bidCount: 6,
+        endDate: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000),
+        seller: { username: 'fashion_house' }
+    },
+    {
+        _id: '7',
+        title: 'Gaming Console Bundle',
+        category: 'Electronics',
+        currentPrice: 520,
+        startingPrice: 400,
+        bidCount: 14,
+        endDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+        seller: { username: 'tech_store' }
+    },
+    {
+        _id: '8',
+        title: 'Antique Tea Set',
+        category: 'Home',
+        currentPrice: 340,
+        startingPrice: 150,
+        bidCount: 9,
+        endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        seller: { username: 'antique_shop' }
+    },
+    {
+        _id: '9',
+        title: 'Signed Basketball',
+        category: 'Sports',
+        currentPrice: 950,
+        startingPrice: 500,
+        bidCount: 11,
+        endDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+        seller: { username: 'sports_memorabilia' }
+    },
+    {
+        _id: '10',
+        title: 'Vintage Vinyl Records',
+        category: 'Collectibles',
+        currentPrice: 280,
+        startingPrice: 100,
+        bidCount: 7,
+        endDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+        seller: { username: 'music_collector' }
+    },
+    {
+        _id: '11',
+        title: 'Diamond Necklace',
+        category: 'Jewelry',
+        currentPrice: 4500,
+        startingPrice: 3000,
+        bidCount: 17,
+        endDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
+        seller: { username: 'luxury_items' }
+    },
+    {
+        _id: '12',
+        title: 'Rare Comic Book',
+        category: 'Books',
+        currentPrice: 1100,
+        startingPrice: 600,
+        bidCount: 21,
+        endDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000),
+        seller: { username: 'comic_store' }
+    }
+];
+
+// Initialize products display
+function initializeProductsDisplay() {
+    // Use sample products if no products from backend
+    if (!window.allProducts || window.allProducts.length === 0) {
+        window.allProducts = sampleProducts;
+    }
+
+    allProductsDisplay = [...window.allProducts];
+    filteredProducts = [...allProductsDisplay];
+    displayProductsWithPagination();
+}
+
+// Display products with pagination
+function displayProductsWithPagination() {
+    const startIndex = (currentPage - 1) * productsPerPage;
+    const endIndex = startIndex + productsPerPage;
+    const productsToShow = filteredProducts.slice(startIndex, endIndex);
+
+    displayProducts(productsToShow, false);
+    updatePagination();
+    updateResultsInfo();
+}
+
+// Update pagination controls
+function updatePagination() {
+    const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+    const pageNumbers = document.getElementById('pageNumbers');
+
+    // Clear existing page numbers
+    pageNumbers.innerHTML = '';
+
+    // Calculate page range to show
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, startPage + 4);
+
+    if (endPage - startPage < 4) {
+        startPage = Math.max(1, endPage - 4);
+    }
+
+    // Add first page and ellipsis if needed
+    if (startPage > 1) {
+        addPageNumber(1);
+        if (startPage > 2) {
+            pageNumbers.innerHTML += '<span class="page-ellipsis">...</span>';
+        }
+    }
+
+    // Add page numbers
+    for (let i = startPage; i <= endPage; i++) {
+        addPageNumber(i);
+    }
+
+    // Add last page and ellipsis if needed
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            pageNumbers.innerHTML += '<span class="page-ellipsis">...</span>';
+        }
+        addPageNumber(totalPages);
+    }
+
+    // Update prev/next buttons
+    document.getElementById('prevBtn').disabled = currentPage === 1;
+    document.getElementById('nextBtn').disabled = currentPage === totalPages || totalPages === 0;
+}
+
+// Add page number button
+function addPageNumber(pageNum) {
+    const pageNumbers = document.getElementById('pageNumbers');
+    const button = document.createElement('button');
+    button.className = `page-number ${pageNum === currentPage ? 'active' : ''}`;
+    button.textContent = pageNum;
+    button.onclick = () => goToPage(pageNum);
+    pageNumbers.appendChild(button);
+}
+
+// Navigate to specific page
+function goToPage(page) {
+    currentPage = page;
+    displayProductsWithPagination();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Previous page
+function previousPage() {
+    if (currentPage > 1) {
+        currentPage--;
+        displayProductsWithPagination();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+}
+
+// Next page
+function nextPage() {
+    const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+    if (currentPage < totalPages) {
+        currentPage++;
+        displayProductsWithPagination();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+}
+
+// Update results info
+function updateResultsInfo() {
+    const startIndex = (currentPage - 1) * productsPerPage + 1;
+    const endIndex = Math.min(currentPage * productsPerPage, filteredProducts.length);
+
+    document.getElementById('showingCount').textContent =
+        filteredProducts.length > 0 ? `${startIndex}-${endIndex}` : '0';
+    document.getElementById('totalCount').textContent = filteredProducts.length;
+}
+
+// Search products
+function searchProducts() {
+    const searchTerm = document.getElementById('productSearch').value.toLowerCase();
+
+    if (searchTerm === '') {
+        filteredProducts = [...allProductsDisplay];
+    } else {
+        filteredProducts = allProductsDisplay.filter(product =>
+            product.title.toLowerCase().includes(searchTerm) ||
+            product.category.toLowerCase().includes(searchTerm)
+        );
+    }
+
+    currentPage = 1;
+    displayProductsWithPagination();
+}
+
+// Filter products by category
+function filterProducts() {
+    const category = document.getElementById('categoryFilter').value;
+
+    if (category === '') {
+        filteredProducts = [...allProductsDisplay];
+    } else {
+        filteredProducts = allProductsDisplay.filter(product =>
+            product.category === category
+        );
+    }
+
+    // Apply any existing search
+    const searchTerm = document.getElementById('productSearch').value.toLowerCase();
+    if (searchTerm !== '') {
+        filteredProducts = filteredProducts.filter(product =>
+            product.title.toLowerCase().includes(searchTerm)
+        );
+    }
+
+    currentPage = 1;
+    displayProductsWithPagination();
+}
+
+// Sort products
+function sortProducts() {
+    const sortOption = document.getElementById('priceSort').value;
+
+    switch (sortOption) {
+        case 'low-high':
+            filteredProducts.sort((a, b) => a.currentPrice - b.currentPrice);
+            break;
+        case 'high-low':
+            filteredProducts.sort((a, b) => b.currentPrice - a.currentPrice);
+            break;
+        case 'ending-soon':
+            filteredProducts.sort((a, b) => new Date(a.endDate) - new Date(b.endDate));
+            break;
+        case 'most-bids':
+            filteredProducts.sort((a, b) => b.bidCount - a.bidCount);
+            break;
+        default:
+            // Reset to original order
+            filteredProducts = [...allProductsDisplay];
+            filterProducts(); // Reapply filters
+            return;
+    }
+
+    currentPage = 1;
+    displayProductsWithPagination();
+}
+
+// Toggle advanced filters
+function toggleAdvancedFilters() {
+    const advancedFilters = document.getElementById('advancedFilters');
+    advancedFilters.style.display = advancedFilters.style.display === 'none' ? 'flex' : 'none';
+}
+
+// Apply advanced filters
+// Replace the existing applyFilters function with this:
+function applyFilters() {
+    const minPrice = parseFloat(document.getElementById('minPrice').value) || 0;
+    const maxPrice = parseFloat(document.getElementById('maxPrice').value) || Infinity;
+    const timeFilter = document.getElementById('timeFilter').value;
+    const category = document.getElementById('categoryFilter').value;
+    const searchTerm = document.getElementById('productSearch').value.toLowerCase();
+
+    // Start with all products
+    filteredProducts = allProductsDisplay.filter(product => {
+        // Price filter
+        if (product.currentPrice < minPrice || product.currentPrice > maxPrice) {
+            return false;
+        }
+
+        // Time filter
+        if (timeFilter) {
+            const daysLeft = Math.ceil((new Date(product.endDate) - new Date()) / (1000 * 60 * 60 * 24));
+            if (daysLeft > parseInt(timeFilter)) {
+                return false;
+            }
+        }
+
+        // Category filter
+        if (category && product.category !== category) {
+            return false;
+        }
+
+        // Search filter
+        if (searchTerm && !product.title.toLowerCase().includes(searchTerm) &&
+            !product.category.toLowerCase().includes(searchTerm)) {
+            return false;
+        }
+
+        return true;
+    });
+
+    // Apply current sort
+    const sortOption = document.getElementById('priceSort').value;
+    if (sortOption) {
+        sortProducts();
+    } else {
+        currentPage = 1;
+        displayProductsWithPagination();
+    }
+}
+
+// Clear all filters
+function clearFilters() {
+    document.getElementById('categoryFilter').value = '';
+    document.getElementById('priceSort').value = '';
+    document.getElementById('productSearch').value = '';
+    document.getElementById('minPrice').value = '';
+    document.getElementById('maxPrice').value = '';
+    document.getElementById('timeFilter').value = '';
+
+    filteredProducts = [...allProductsDisplay];
+    currentPage = 1;
+    displayProductsWithPagination();
+
+    // Hide advanced filters
+    document.getElementById('advancedFilters').style.display = 'none';
+}
+
+// Update the existing loadProducts function
+const originalLoadProducts = loadProducts;
+async function loadProducts(isViewer = false) {
+    try {
+        await originalLoadProducts(isViewer);
+        initializeProductsDisplay();
+    } catch (error) {
+        console.error('Error loading products:', error);
+        // Use sample products as fallback
+        window.allProducts = sampleProducts;
+        initializeProductsDisplay();
+    }
+}
+
+// Add enter key support for search
+document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('productSearch');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchProducts();
+            }
+        });
+    }
+});
 
 // Back to Top Button
 document.addEventListener('DOMContentLoaded', () => {
