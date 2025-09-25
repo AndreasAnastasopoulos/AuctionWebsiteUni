@@ -1,4 +1,4 @@
-// Complete script.js for PAREDÓSE Auction Site
+// Complete script.js for PAREDŌSE Auction Site
 
 // API Configuration
 const API_URL = 'http://localhost:5000/api';
@@ -16,6 +16,27 @@ let userLocationMarker = null;
 let searchRadius = 50;
 let currentUserLocation = null;
 let radiusCircle = null;
+
+// Navigation Functions for Multi-page Structure
+function showWelcome() {
+    window.location.href = 'index.html';
+}
+
+function showWaiting() {
+    window.location.href = 'waiting.html';
+}
+
+function showViewer() {
+    window.location.href = 'viewer.html';
+}
+
+function showSignIn() {
+    window.location.href = 'signin.html';
+}
+
+function showSignUp() {
+    window.location.href = 'signup.html';
+}
 
 // API Helper Functions
 const apiCall = async (endpoint, options = {}) => {
@@ -46,60 +67,6 @@ const apiCall = async (endpoint, options = {}) => {
         throw error;
     }
 };
-
-// Page navigation functions
-function showWelcome() {
-    hideAllPages();
-    document.getElementById('welcomePage').style.display = 'flex';
-}
-
-function showSignIn() {
-    hideAllPages();
-    document.getElementById('signInPage').style.display = 'flex';
-}
-
-function showSignUp() {
-    hideAllPages();
-    document.getElementById('signUpPage').style.display = 'flex';
-    document.getElementById('usernameError').style.display = 'none';
-    // Initialize map after showing signup page
-    setTimeout(() => {
-        initSignupMap();
-    }, 100);
-}
-
-function showViewer() {
-    hideAllPages();
-    document.getElementById('viewerPage').style.display = 'block';
-
-    // Reset header for guest viewers
-    const headerRight = document.getElementById('headerRight');
-    if (headerRight) {
-        headerRight.innerHTML = '<button class="btn btn-primary" style="text-wrap: nowrap;" onclick="showSignIn()">Sign In</button><button class="btn btn-secondary" style="text-wrap: nowrap;" onclick="showSignUp()">Sign Up</button>';
-    }
-
-    // Clear existing products
-    const productsGrid = document.querySelector('.products-grid');
-    if (productsGrid) {
-        productsGrid.innerHTML = '<p class="no-products">Loading auctions...</p>';
-    }
-
-    
-    loadProducts(true);
-}
-
-function showWaiting() {
-    hideAllPages();
-    document.getElementById('waitingPage').style.display = 'flex';
-}
-
-function hideAllPages() {
-    document.getElementById('welcomePage').style.display = 'none';
-    document.getElementById('signInPage').style.display = 'none';
-    document.getElementById('signUpPage').style.display = 'none';
-    document.getElementById('waitingPage').style.display = 'none';
-    document.getElementById('viewerPage').style.display = 'none';
-}
 
 // Authentication Functions
 async function handleSignUp(event) {
@@ -151,7 +118,7 @@ async function handleSignUp(event) {
         };
     }
 
-    console.log('Signup request body:', requestBody); // Add this line
+    console.log('Signup request body:', requestBody);
 
     try {
         const response = await apiCall('/auth/signup', {
@@ -159,17 +126,18 @@ async function handleSignUp(event) {
             body: JSON.stringify(requestBody)
         });
 
-        console.log('Signup response:', response); // Add this line
+        console.log('Signup response:', response);
 
         if (response.success) {
-            // Show waiting page
+            // Redirect to waiting page
             showWaiting();
         }
     } catch (error) {
-        console.error('Signup error details:', error); // Add this line
+        console.error('Signup error details:', error);
         // Show error message
+        const usernameError = document.getElementById('usernameError');
         if (error.message.includes('already exists')) {
-            document.getElementById('usernameError').style.display = 'block';
+            if (usernameError) usernameError.style.display = 'block';
         } else {
             alert(error.message);
         }
@@ -198,13 +166,13 @@ async function handleSignIn(event) {
             // Check user status
             if (currentUser.status === 'pending') {
                 alert('Your account is pending approval. Please wait for admin verification.');
-                showWelcome();
+                showViewer();
             } else if (currentUser.status === 'active') {
                 // Redirect based on role
                 if (currentUser.role === 'admin') {
                     window.location.href = '../admin-dashboard.html';
                 } else {
-                    showAuctionPage();
+                    showViewer(); // Redirect to viewer page which will show authenticated content
                 }
             }
         }
@@ -227,12 +195,16 @@ async function loadProducts(isViewer = false) {
         console.error('Error loading products:', error);
         // Display message if no products or error
         const productsGrid = document.querySelector('.products-grid');
-        productsGrid.innerHTML = '<p class="no-products">No active auctions at the moment.</p>';
+        if (productsGrid) {
+            productsGrid.innerHTML = '<p class="no-products">No active auctions at the moment.</p>';
+        }
     }
 }
 
 function displayProducts(products, isViewer = false) {
     const productsGrid = document.querySelector('.products-grid');
+    if (!productsGrid) return; // Exit if element doesn't exist
+
     productsGrid.innerHTML = '';
 
     if (!products || products.length === 0) {
@@ -269,19 +241,29 @@ function displayProducts(products, isViewer = false) {
 // Bid Modal Functions
 function showBidModal(productId, currentPrice) {
     currentProductId = productId;
-    document.getElementById('currentPrice').textContent = currentPrice.toFixed(2);
-    document.getElementById('bidAmount').value = '';
-    document.getElementById('bidAmount').min = (currentPrice + 0.01).toFixed(2);
-    document.getElementById('bidModal').style.display = 'block';
+    const currentPriceElement = document.getElementById('currentPrice');
+    const bidAmountElement = document.getElementById('bidAmount');
+    const bidModal = document.getElementById('bidModal');
+
+    if (currentPriceElement) currentPriceElement.textContent = currentPrice.toFixed(2);
+    if (bidAmountElement) {
+        bidAmountElement.value = '';
+        bidAmountElement.min = (currentPrice + 0.01).toFixed(2);
+    }
+    if (bidModal) bidModal.style.display = 'block';
 }
 
 function closeBidModal() {
-    document.getElementById('bidModal').style.display = 'none';
+    const bidModal = document.getElementById('bidModal');
+    if (bidModal) bidModal.style.display = 'none';
     currentProductId = null;
 }
 
 async function submitBid() {
-    const bidAmount = parseFloat(document.getElementById('bidAmount').value);
+    const bidAmountElement = document.getElementById('bidAmount');
+    if (!bidAmountElement) return;
+
+    const bidAmount = parseFloat(bidAmountElement.value);
 
     if (!bidAmount || isNaN(bidAmount)) {
         alert('Please enter a valid bid amount');
@@ -307,14 +289,6 @@ async function submitBid() {
     }
 }
 
-// Close modal when clicking outside
-window.onclick = function (event) {
-    const modal = document.getElementById('bidModal');
-    if (event.target === modal) {
-        closeBidModal();
-    }
-}
-
 // Utility Functions
 function calculateTimeLeft(endDate) {
     const now = new Date();
@@ -332,18 +306,11 @@ function calculateTimeLeft(endDate) {
     return `${minutes} minute${minutes > 1 ? 's' : ''} left`;
 }
 
-// Show auction page for authenticated users
-function showAuctionPage() {
-    console.log('showAuctionPage called, currentUser:', currentUser);
-
-    hideAllPages();
-    document.getElementById('viewerPage').style.display = 'block';
-
-    // Try to update immediately
+// Update header for authenticated users
+function updateAuthenticatedHeader() {
     const headerRight = document.getElementById('headerRight');
-    console.log('headerRight element:', headerRight);
 
-    if (headerRight) {
+    if (headerRight && currentUser && currentUser.status === 'active') {
         headerRight.innerHTML = `
             <div class="user-menu">
                 <span>Welcome, ${currentUser.fullName}</span>
@@ -351,13 +318,7 @@ function showAuctionPage() {
                 <button class="btn btn-sm" onclick="logout()">Logout</button>
             </div>
         `;
-        console.log('Header updated successfully');
-    } else {
-        console.error('headerRight not found!');
     }
-
-    // Load products
-    loadProducts(false);
 }
 
 // Logout function
@@ -650,6 +611,8 @@ function updatePagination() {
     const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
     const pageNumbers = document.getElementById('pageNumbers');
 
+    if (!pageNumbers) return; // Exit if element doesn't exist
+
     // Clear existing page numbers
     pageNumbers.innerHTML = '';
 
@@ -683,13 +646,17 @@ function updatePagination() {
     }
 
     // Update prev/next buttons
-    document.getElementById('prevBtn').disabled = currentPage === 1;
-    document.getElementById('nextBtn').disabled = currentPage === totalPages || totalPages === 0;
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    if (prevBtn) prevBtn.disabled = currentPage === 1;
+    if (nextBtn) nextBtn.disabled = currentPage === totalPages || totalPages === 0;
 }
 
 // Add page number button
 function addPageNumber(pageNum) {
     const pageNumbers = document.getElementById('pageNumbers');
+    if (!pageNumbers) return;
+
     const button = document.createElement('button');
     button.className = `page-number ${pageNum === currentPage ? 'active' : ''}`;
     button.textContent = pageNum;
@@ -728,14 +695,23 @@ function updateResultsInfo() {
     const startIndex = (currentPage - 1) * productsPerPage + 1;
     const endIndex = Math.min(currentPage * productsPerPage, filteredProducts.length);
 
-    document.getElementById('showingCount').textContent =
-        filteredProducts.length > 0 ? `${startIndex}-${endIndex}` : '0';
-    document.getElementById('totalCount').textContent = filteredProducts.length;
+    const showingCount = document.getElementById('showingCount');
+    const totalCount = document.getElementById('totalCount');
+
+    if (showingCount) {
+        showingCount.textContent = filteredProducts.length > 0 ? `${startIndex}-${endIndex}` : '0';
+    }
+    if (totalCount) {
+        totalCount.textContent = filteredProducts.length;
+    }
 }
 
 // Search products
 function searchProducts() {
-    const searchTerm = document.getElementById('productSearch').value.toLowerCase();
+    const searchInput = document.getElementById('productSearch');
+    if (!searchInput) return;
+
+    const searchTerm = searchInput.value.toLowerCase();
 
     if (searchTerm === '') {
         filteredProducts = [...allProductsDisplay];
@@ -752,7 +728,10 @@ function searchProducts() {
 
 // Filter products by category
 function filterProducts() {
-    const category = document.getElementById('categoryFilter').value;
+    const categoryFilter = document.getElementById('categoryFilter');
+    if (!categoryFilter) return;
+
+    const category = categoryFilter.value;
 
     if (category === '') {
         filteredProducts = [...allProductsDisplay];
@@ -763,11 +742,14 @@ function filterProducts() {
     }
 
     // Apply any existing search
-    const searchTerm = document.getElementById('productSearch').value.toLowerCase();
-    if (searchTerm !== '') {
-        filteredProducts = filteredProducts.filter(product =>
-            product.title.toLowerCase().includes(searchTerm)
-        );
+    const searchInput = document.getElementById('productSearch');
+    if (searchInput) {
+        const searchTerm = searchInput.value.toLowerCase();
+        if (searchTerm !== '') {
+            filteredProducts = filteredProducts.filter(product =>
+                product.title.toLowerCase().includes(searchTerm)
+            );
+        }
     }
 
     currentPage = 1;
@@ -776,7 +758,10 @@ function filterProducts() {
 
 // Sort products
 function sortProducts() {
-    const sortOption = document.getElementById('priceSort').value;
+    const priceSort = document.getElementById('priceSort');
+    if (!priceSort) return;
+
+    const sortOption = priceSort.value;
 
     switch (sortOption) {
         case 'low-high':
@@ -805,17 +790,24 @@ function sortProducts() {
 // Toggle advanced filters
 function toggleAdvancedFilters() {
     const advancedFilters = document.getElementById('advancedFilters');
-    advancedFilters.style.display = advancedFilters.style.display === 'none' ? 'flex' : 'none';
+    if (advancedFilters) {
+        advancedFilters.style.display = advancedFilters.style.display === 'none' ? 'flex' : 'none';
+    }
 }
 
 // Apply advanced filters
-// Replace the existing applyFilters function with this:
 function applyFilters() {
-    const minPrice = parseFloat(document.getElementById('minPrice').value) || 0;
-    const maxPrice = parseFloat(document.getElementById('maxPrice').value) || Infinity;
-    const timeFilter = document.getElementById('timeFilter').value;
-    const category = document.getElementById('categoryFilter').value;
-    const searchTerm = document.getElementById('productSearch').value.toLowerCase();
+    const minPriceEl = document.getElementById('minPrice');
+    const maxPriceEl = document.getElementById('maxPrice');
+    const timeFilterEl = document.getElementById('timeFilter');
+    const categoryEl = document.getElementById('categoryFilter');
+    const searchEl = document.getElementById('productSearch');
+
+    const minPrice = minPriceEl ? parseFloat(minPriceEl.value) || 0 : 0;
+    const maxPrice = maxPriceEl ? parseFloat(maxPriceEl.value) || Infinity : Infinity;
+    const timeFilter = timeFilterEl ? timeFilterEl.value : '';
+    const category = categoryEl ? categoryEl.value : '';
+    const searchTerm = searchEl ? searchEl.value.toLowerCase() : '';
 
     // Start with all products
     filteredProducts = allProductsDisplay.filter(product => {
@@ -847,8 +839,8 @@ function applyFilters() {
     });
 
     // Apply current sort
-    const sortOption = document.getElementById('priceSort').value;
-    if (sortOption) {
+    const sortEl = document.getElementById('priceSort');
+    if (sortEl && sortEl.value) {
         sortProducts();
     } else {
         currentPage = 1;
@@ -858,19 +850,27 @@ function applyFilters() {
 
 // Clear all filters
 function clearFilters() {
-    document.getElementById('categoryFilter').value = '';
-    document.getElementById('priceSort').value = '';
-    document.getElementById('productSearch').value = '';
-    document.getElementById('minPrice').value = '';
-    document.getElementById('maxPrice').value = '';
-    document.getElementById('timeFilter').value = '';
+    const categoryEl = document.getElementById('categoryFilter');
+    const sortEl = document.getElementById('priceSort');
+    const searchEl = document.getElementById('productSearch');
+    const minPriceEl = document.getElementById('minPrice');
+    const maxPriceEl = document.getElementById('maxPrice');
+    const timeFilterEl = document.getElementById('timeFilter');
+    const advancedEl = document.getElementById('advancedFilters');
+
+    if (categoryEl) categoryEl.value = '';
+    if (sortEl) sortEl.value = '';
+    if (searchEl) searchEl.value = '';
+    if (minPriceEl) minPriceEl.value = '';
+    if (maxPriceEl) maxPriceEl.value = '';
+    if (timeFilterEl) timeFilterEl.value = '';
 
     filteredProducts = [...allProductsDisplay];
     currentPage = 1;
     displayProductsWithPagination();
 
     // Hide advanced filters
-    document.getElementById('advancedFilters').style.display = 'none';
+    if (advancedEl) advancedEl.style.display = 'none';
 }
 
 // Update the existing loadProducts function
@@ -887,20 +887,8 @@ async function loadProducts(isViewer = false) {
     }
 }
 
-// Add enter key support for search
-document.addEventListener('DOMContentLoaded', () => {
-    const searchInput = document.getElementById('productSearch');
-    if (searchInput) {
-        searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                searchProducts();
-            }
-        });
-    }
-});
-
 // Back to Top Button
-document.addEventListener('DOMContentLoaded', () => {
+function initializeBackToTop() {
     const backToTopButton = document.querySelector('.back-to-top');
 
     if (backToTopButton) {
@@ -919,49 +907,20 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
-
-    // Check authentication on page load
-    if (authToken && currentUser) {
-        // Check if user is pending
-        if (currentUser.status === 'pending') {
-            // Pending users stay on viewer page
-            showViewer();
-            return;
-        }
-
-        // Only verify token for active users
-        apiCall('/users/profile')
-            .then(response => {
-                if (response.success) {
-                    if (response.user && response.user.status === 'active') {
-                        showAuctionPage();
-                    } else if (response.user && response.user.status === 'pending') {
-                        // User is still pending, show viewer page
-                        showViewer();
-                    }
-                }
-            })
-            .catch(() => {
-                // Token invalid, clear storage
-                logout();
-            });
-    }
-});
+}
 
 // PRODUCTS MAP FUNCTIONS
-
-// Toggle map visibility
 function toggleMapView() {
     const mapSection = document.getElementById('mapSection');
     const toggleText = document.getElementById('mapToggleText');
 
     if (mapVisible) {
-        mapSection.style.display = 'none';
-        toggleText.textContent = 'Show Map';
+        if (mapSection) mapSection.style.display = 'none';
+        if (toggleText) toggleText.textContent = 'Show Map';
         mapVisible = false;
     } else {
-        mapSection.style.display = 'block';
-        toggleText.textContent = 'Hide Map';
+        if (mapSection) mapSection.style.display = 'block';
+        if (toggleText) toggleText.textContent = 'Hide Map';
         mapVisible = true;
 
         // Initialize map if not already done
@@ -1051,9 +1010,10 @@ function addProductMarkersToMap(products) {
 
 // Search location by text
 async function searchLocation() {
-    const searchText = document.getElementById('locationSearch').value;
+    const searchText = document.getElementById('locationSearch');
+    if (!searchText) return;
 
-    if (!searchText) {
+    if (!searchText.value) {
         alert('Please enter a location to search');
         return;
     }
@@ -1062,7 +1022,7 @@ async function searchLocation() {
         // Use Nominatim API for geocoding
         const response = await fetch(
             `https://nominatim.openstreetmap.org/search?` +
-            `format=json&q=${encodeURIComponent(searchText)}&limit=1`
+            `format=json&q=${encodeURIComponent(searchText.value)}&limit=1`
         );
 
         const data = await response.json();
@@ -1146,4 +1106,88 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
         Math.sin(dLon / 2) * Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
+}
+
+// Page-specific initialization
+document.addEventListener('DOMContentLoaded', () => {
+    // Get current page
+    const currentPath = window.location.pathname;
+    const pageName = currentPath.substring(currentPath.lastIndexOf('/') + 1);
+
+    // Initialize common features
+    initializeBackToTop();
+
+    // Page-specific initialization
+    switch (pageName) {
+        case 'viewer.html':
+            // Initialize viewer page
+            if (authToken && currentUser) {
+                updateAuthenticatedHeader();
+            }
+            // Load products with sample data
+            window.allProducts = sampleProducts;
+            initializeProductsDisplay();
+
+            // Add enter key support for search
+            const searchInput = document.getElementById('productSearch');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        searchProducts();
+                    }
+                });
+            }
+            break;
+
+        case 'signup.html':
+            // Initialize signup map
+            initSignupMap();
+            break;
+
+        case 'signin.html':
+            // Check if user is already logged in
+            if (authToken && currentUser) {
+                if (currentUser.status === 'active') {
+                    showViewer();
+                }
+            }
+            break;
+
+        case 'waiting.html':
+            // Nothing specific to initialize
+            break;
+
+        case 'index.html':
+        case '':
+            // Welcome page - check authentication
+            if (authToken && currentUser) {
+                // Check if user is pending
+                if (currentUser.status === 'pending') {
+                    showViewer();
+                } else if (currentUser.status === 'active') {
+                    // Verify token for active users
+                    apiCall('/users/profile')
+                        .then(response => {
+                            if (response.success) {
+                                if (response.user && response.user.status === 'active') {
+                                    showViewer();
+                                }
+                            }
+                        })
+                        .catch(() => {
+                            // Token invalid, clear storage
+                            logout();
+                        });
+                }
+            }
+            break;
+    }
+});
+
+// Close modal when clicking outside
+window.onclick = function (event) {
+    const modal = document.getElementById('bidModal');
+    if (modal && event.target === modal) {
+        closeBidModal();
+    }
 }

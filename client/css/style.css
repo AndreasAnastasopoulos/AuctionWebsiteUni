@@ -171,7 +171,7 @@ h3 {
 
 /* Form Styles */
 .form-container {
-    display: none;
+    display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
@@ -432,7 +432,7 @@ h3 {
 
 /* Waiting Page Styles */
 .waiting-container {
-    display: none;
+    display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
@@ -461,7 +461,8 @@ h3 {
 
 /* Viewer Page Styles */
 .viewer-container {
-    display: none;
+    display: flex;
+    flex-direction: column;
     min-height: 100vh;
     background: var(--PRIMARY-COLOR);
 }

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="el">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- For some icons -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- For the map -->
+    <link rel="stylesheet" href="./css/style.css">
+    <title>PAREDÓSE - Online Auction Platform</title>
+</head>
+
+<body>
+    <!-- Sign up form -->
+    <div id="signUpPage" class="form-container">
+        <div class="form-card">
+            <div class="form-header">
+                <h2>Create Account</h2>
+                <p>Join our auction community</p>
+            </div>
+            <div id="usernameError" class="error-message">
+                Username already exists. Please choose another username.
+            </div>
+            <form onsubmit="handleSignUp(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="signup-username">Username</label>
+                        <input type="text" id="signup-username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-fullname">Full Name</label>
+                        <input type="text" id="signup-fullname" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="signup-password">Password</label>
+                        <input type="password" id="signup-password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-confirm-password">Confirm Password</label>
+                        <input type="password" id="signup-confirm-password" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="signup-email">Email</label>
+                        <input type="email" id="signup-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-phone">Phone Number</label>
+                        <input type="tel" id="signup-phone" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="signup-address">Street Name</label>
+                        <input type="text" id="signup-address" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-address-number">Street Number</label>
+                        <input type="text" id="signup-address-number" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="signup-city-country">City, Country</label>
+                        <input type="text" id="signup-city-country" placeholder="e.g., Athens, Greece" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-ssn">Social Security Number</label>
+                        <input type="text" id="signup-ssn" required>
+                    </div>
+                </div>
+
+                <!-- Location Selection Section -->
+                <div class="location-section">
+                    <h3>Confirm Your Location</h3>
+                    <p class="location-help">Click on the map to set your exact location or use the search button</p>
+                    <div class="location-controls">
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="geocodeAddress()">
+                            <i class="fas fa-search"></i> Find My Address on Map
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="getCurrentLocation()">
+                            <i class="fas fa-location-arrow"></i> Use Current Location
+                        </button>
+                    </div>
+                    <div id="signup-map" class="signup-map"></div>
+                    <div class="coordinates-display">
+                        <span>Selected Location: </span>
+                        <span id="selected-coords">Not set</span>
+                    </div>
+                    <!-- Hidden fields for coordinates -->
+                    <input type="hidden" id="signup-latitude" name="latitude">
+                    <input type="hidden" id="signup-longitude" name="longitude">
+                </div>
+
+                <button type="submit" class="btn btn-primary">Sign Up</button>
+            </form>
+            <div class="back-btn">
+                <a href="index.html">Back to Welcome</a>
+            </div>
+        </div>
+    </div>
+    <script src="./js/script.js"></script>
+</body>
+
+</html>

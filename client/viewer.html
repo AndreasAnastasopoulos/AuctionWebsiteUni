@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="el">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- For some icons -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- For the map -->
+    <link rel="stylesheet" href="./css/style.css">
+    <title>PAREDÓSE - Online Auction Platform</title>
+</head>
+
+<body>
+    <!-- Viewer Page -->
+    <div id="viewerPage" class="viewer-container">
+        <header class="viewer-header">
+            <div class="header-content">
+                <h1 class="logo">PAREDÓSE.</h1>
+                <div id="headerRight" class="header-right">
+                    <!-- This will be dynamically populated -->
+                    <a href="signin.html"><button class="btn btn-primary" style="text-wrap: nowrap;">Sign In</button></a>
+                    <a href="signup.html"><button class="btn btn-secondary" style="text-wrap: nowrap;">Sign Up</button></a>
+                </div>
+            </div>
+        </header>
+
+        <section class="products-section">
+            <h2 class="section-title">Featured Auctions</h2>
+
+            <!-- Filter and Search Bar -->
+            <div class="products-controls">
+                <div class="search-bar">
+                    <input type="text" id="productSearch" placeholder="Search auctions..." class="search-input">
+                    <button class="search-btn" onclick="searchProducts()">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+
+                <div class="filter-controls">
+                    <select id="categoryFilter" class="filter-select" onchange="filterProducts()">
+                        <option value="">All Categories</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Art">Art</option>
+                        <option value="Jewelry">Jewelry</option>
+                        <option value="Books">Books</option>
+                        <option value="Collectibles">Collectibles</option>
+                        <option value="Fashion">Fashion</option>
+                        <option value="Home">Home & Garden</option>
+                        <option value="Sports">Sports & Outdoors</option>
+                    </select>
+
+                    <select id="priceSort" class="filter-select" onchange="sortProducts()">
+                        <option value="">Sort by Price</option>
+                        <option value="low-high">Price: Low to High</option>
+                        <option value="high-low">Price: High to Low</option>
+                        <option value="ending-soon">Ending Soon</option>
+                        <option value="most-bids">Most Bids</option>
+                    </select>
+
+                    <button class="filter-btn" onclick="toggleAdvancedFilters()">
+                        <i class="fas fa-filter"></i> Filters
+                    </button>
+                </div>
+            </div>
+
+            <!-- Advanced Filters (Hidden by default) -->
+            <div id="advancedFilters" class="advanced-filters" style="display: none;">
+                <div class="price-range">
+                    <label>Price Range:</label>
+                    <input type="number" id="minPrice" placeholder="Min" class="price-input">
+                    <span>-</span>
+                    <input type="number" id="maxPrice" placeholder="Max" class="price-input">
+                </div>
+                <div class="time-filter">
+                    <label>Time Left:</label>
+                    <select id="timeFilter" class="filter-select">
+                        <option value="">Any Time</option>
+                        <option value="1">Ending in 1 day</option>
+                        <option value="3">Ending in 3 days</option>
+                        <option value="7">Ending in 7 days</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="applyFilters()">Apply Filters</button>
+                <button class="btn btn-secondary btn-sm" onclick="clearFilters()">Clear</button>
+            </div>
+
+            <!-- Products Grid -->
+            <div class="products-grid" id="productsGrid">
+                <!-- Products will be dynamically loaded here -->
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination" id="pagination">
+                <button class="page-btn" onclick="previousPage()" id="prevBtn">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class="page-numbers" id="pageNumbers">
+                    <!-- Page numbers will be dynamically generated -->
+                </div>
+                <button class="page-btn" onclick="nextPage()" id="nextBtn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+
+            <!-- Results Info -->
+            <div class="results-info">
+                Showing <span id="showingCount">0</span> of <span id="totalCount">0</span> auctions
+            </div>
+        </section>
+
+        <div class="products-map-container">
+            <div class="products-map-header">
+                <h2 class="section-title">Auction Locations</h2>
+                <button class="btn btn-secondary btn-sm" onclick="toggleMapView()">
+                    <i class="fas fa-map"></i> <span id="mapToggleText">Show Map</span>
+                </button>
+            </div>
+
+            <div id="mapSection" style="display: none;">
+                <!-- Location Search -->
+                <div class="map-search-bar">
+                    <input type="text" id="locationSearch" placeholder="Search location (e.g., Athens, Greece)">
+                    <button class="btn btn-primary btn-sm" onclick="searchLocation()">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                    <button class="btn btn-secondary btn-sm" onclick="searchNearMe()">
+                        <i class="fas fa-location-arrow"></i> Near Me
+                    </button>
+                </div>
+
+                <!-- Distance Filter -->
+                <!--                 <div class="location-filter">
+                    <label>Search Radius:</label>
+                    <input type="range" id="radiusSlider" min="1" max="100" value="50" onchange="updateRadius()">
+                    <span class="range-value"><span id="radiusValue">50</span> km</span>
+                    <button class="btn btn-primary btn-sm" onclick="applyLocationFilter()">Apply</button>
+                </div> -->
+
+                <!-- Map Container -->
+                <div id="products-map" class="products-map"></div>
+
+                <!-- Map Legend -->
+                <div class="map-legend">
+                    <p><i class="fas fa-map-marker-alt" style="color: #2980b9;"></i> Product Locations</p>
+                    <p><i class="fas fa-circle" style="color: #e74c3c;"></i> Your Location</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="viewer-cta">
+            <h3>Want to place bids?</h3>
+            <p>Sign up now to participate in auctions and start bidding on amazing items!</p>
+            <a href="signup.html" class="cta-button">Sign Up Now</a>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <div class="container">
+                <div class="footer-divider"></div>
+                <div class="footer-content">
+                    <div class="footer-logo-and-social">
+                        <span class="logo-footer">PAREDÓSE.</span>
+                        <a href="#" target="_blank" class="social-link">
+                            <i class="fa-brands fa-github"></i>
+                        </a>
+                    </div>
+                    <div class="footer-contact">
+                        <div class="contact-item">
+                            <i class="fas fa-phone"></i>
+                            <span><a href="tel:+306948202941">6948202941</a></span>
+                        </div>
+                        <div class="contact-item" style="margin-left: 1.7rem;">
+                            <span><a href="tel:+306955814230">6955814230</a></span>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-envelope"></i>
+                            <span><a href="mailto:sdi1900009@di.uoa.gr">sdi1900009@di.uoa.gr</a></span>
+                        </div>
+                        <div class="contact-item" style="margin-left: 1.7rem;">
+                            <span><a href="mailto:sdi1900270@di.uoa.gr">sdi1900270@di.uoa.gr</a></span>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Athens, Attica, Greece</span>
+                        </div>
+                    </div>
+                </div>
+                <p style="font-size: 0.9rem;">© 2025 PAREDÓSE. <br> Made with love by <br> Αναστασόπουλος Ανδρέας &
+                    Αθανασόπουλος Πέτρος-Ερμής</p>
+            </div>
+        </footer>
+
+        <!-- Back to Top Button -->
+        <div class="back-to-top">
+            <i class="fas fa-arrow-up"></i>
+        </div>
+    </div>
+    <script src="./js/script.js"></script>
+
+    <div id="bidModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeBidModal()">&times;</span>
+            <h3>Place Your Bid</h3>
+            <p>Current price: $<span id="currentPrice"></span></p>
+            <input type="number" id="bidAmount" step="0.01" min="0" placeholder="Enter your bid">
+            <button class="btn btn-primary" onclick="submitBid()">Submit Bid</button>
+        </div>
+    </div>
+</body>
+
+</html>
