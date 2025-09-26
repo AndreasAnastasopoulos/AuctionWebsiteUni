@@ -21,7 +21,7 @@ async function createAdmin() {
 
         // Check if admin already exists
         const existingAdmin = await User.findOne({ username: 'admin' });
-        
+
         if (existingAdmin) {
             console.log('Admin user already exists!');
             console.log('Username: admin');
@@ -34,16 +34,21 @@ async function createAdmin() {
             username: 'admin',
             email: 'admin@paredose.com',
             password: 'admin123',
-            fullName: 'Administrator',
+            firstName: 'Admin', // Added firstName
+            lastName: 'User', // Added lastName
             phone: '0000000000',
             address: 'Admin Office',
+            country: 'SomeCountry', // Added country
             ssn: '000-00-0000',
             location: {
                 type: 'Point',
-                coordinates: [0, 0] // Default coordinates
+                coordinates: [0, 0], // Default coordinates
+                address: 'Admin Location' // Added address
             },
             role: 'admin',
-            status: 'active'
+            status: 'active',
+            bidderRating: 0,
+            sellerRating: 0
         });
 
         console.log('Admin user created successfully!');
