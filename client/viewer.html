@@ -21,8 +21,8 @@
                 <h1 class="logo">PAREDÓSE.</h1>
                 <div id="headerRight" class="header-right">
                     <!-- This will be dynamically populated -->
-                    <a href="signin.html"><button class="btn btn-primary" style="text-wrap: nowrap;">Sign In</button></a>
-                    <a href="signup.html"><button class="btn btn-secondary" style="text-wrap: nowrap;">Sign Up</button></a>
+                    <a href="signin.html" style="text-decoration: none;"><button class="btn btn-primary" style="text-wrap: nowrap;">Sign In</button></a>
+                    <a href="signup.html" style="text-decoration: none;"><button class="btn btn-secondary" style="text-wrap: nowrap;">Sign Up</button></a>
                 </div>
             </div>
         </header>
@@ -199,16 +199,6 @@
         </div>
     </div>
     <script src="./js/script.js"></script>
-
-    <div id="bidModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <span class="close" onclick="closeBidModal()">&times;</span>
-            <h3>Place Your Bid</h3>
-            <p>Current price: $<span id="currentPrice"></span></p>
-            <input type="number" id="bidAmount" step="0.01" min="0" placeholder="Enter your bid">
-            <button class="btn btn-primary" onclick="submitBid()">Submit Bid</button>
-        </div>
-    </div>
 </body>
 
 </html>
