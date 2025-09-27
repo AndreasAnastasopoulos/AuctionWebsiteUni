@@ -184,4 +184,20 @@ router.put('/:id/role', protect, authorize('admin'), async (req, res) => {
     }
 });
 
+router.get('/all', async (req, res) => {
+    try {
+        const users = await User.find().select('-password'); // Query the User model
+        res.status(200).json({
+            success: true,
+            count: users.length,
+            data: users
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Server Error'
+        });
+    }
+});
+
 module.exports = router;

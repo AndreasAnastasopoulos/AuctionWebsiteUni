@@ -21,6 +21,7 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files (HTML, CSS, JS) from the 'client' directory
 app.use(express.static(path.join(__dirname, 'client')));
 
+
 // Import routes
 const authRoutes = require('./routes/authRoutes.js');
 const userRoutes = require('./routes/userRoutes.js');
@@ -69,3 +70,5 @@ process.on('unhandledRejection', (err) => {
     // Close server & exit process
     process.exit(1);
 });
+
+
