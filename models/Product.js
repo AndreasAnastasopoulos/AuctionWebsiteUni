@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const bidSchema = require('./Bid').schema; // Import Bid schema for embedding
+const userSchema = require('./User').schema; // Import User schema for referencing
 
 const productSchema = new mongoose.Schema({
     name: {
@@ -51,9 +53,24 @@ const productSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     },
-    // bids: [bidSchema]
+    bids: [{ // Array of ObjectIds referencing the Bid model
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Bid'
+    }],
     location: String,
-    country: String
+    country: String,
+    itemID: { // Unique identifier for the item
+        type: String,
+        required: true,
+        unique: true,
+        trim: true
+    },
+    seller: { // Reference to the User model
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    photos: [String] // Array of image URLs
 }, 
 { timestamps: true });
 
