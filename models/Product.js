@@ -70,7 +70,10 @@ const productSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
-    photos: [String] // Array of image URLs
+    photos: [{ 
+        type: String,
+        required: false
+    }] // Array of image URLs
 }, 
 { timestamps: true });
 
