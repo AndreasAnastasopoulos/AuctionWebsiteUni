@@ -334,6 +334,49 @@ function filterProducts() {
     displayProducts(filtered);
 }
 
+async function exportProducts(format) {
+    const url = `${API_URL}/products/export/${format}`;
+    
+    try {
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `Failed to export ${format.toUpperCase()}`);
+        }
+
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = downloadUrl;
+        
+        // Get filename from response header if available, otherwise create one
+        const disposition = response.headers.get('content-disposition');
+        let filename = `products.${format}`;
+        if (disposition && disposition.indexOf('attachment') !== -1) {
+            const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+            const matches = filenameRegex.exec(disposition);
+            if (matches != null && matches[1]) { 
+                filename = matches[1].replace(/['"]/g, '');
+            }
+        }
+        
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(downloadUrl);
+        a.remove();
+
+    } catch (error) {
+        alert(`Error exporting data: ${error.message}`);
+    }
+}
+
 // Statistics
 async function loadStats() {
     try {

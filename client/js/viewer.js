@@ -53,10 +53,10 @@ function displayProducts(products) {
         }
 
         productCard.innerHTML = `
-            <div class="product-image">${product.images && product.images[0] ? `<img src="${product.images[0]}" alt="${product.title}">` : ''}</div>
+            <div class="product-image">${product.images && product.images[0] ? `<img src="${product.images[0]}" alt="${product.name}">` : ''}</div>
             <div class="product-info">
                 <div class="product-category">${product.category}</div>
-                <h3 class="product-title">${product.title}</h3>
+                <h3 class="product-title">${product.name}</h3>
                 <div class="current-bid">$${product.currentPrice.toFixed(2)}</div>
                 <div class="bid-info">${product.bidCount} bid${product.bidCount !== 1 ? 's' : ''} • ${timeLeft}</div>
                 ${actionSection}

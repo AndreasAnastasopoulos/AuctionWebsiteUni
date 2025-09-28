@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');
-const { protect, requireActive } = require('../middleware/auth');
+const { protect, requireAdmin } = require('../middleware/auth'); // Assuming you have a requireAdmin middleware
+const { v4: uuidv4 } = require('uuid');
+const js2xmlparser = require("js2xmlparser"); // Import the XML parser
 
 // @route   GET /api/products
 // @desc    Get all active products with location data
@@ -147,7 +149,6 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
     return R * c;
 }
 
-// Rest of the routes remain the same...
 // @route   GET /api/products/:id
 router.get('/:id', async (req, res) => {
     try {
@@ -177,9 +178,10 @@ router.get('/:id', async (req, res) => {
 // @route   POST /api/products , protect, requireActive
 router.post('/', async (req, res) => {
     try {
-        const { name, title, description, category, startingPrice, endDate, images, seller } = req.body;
+        const { itemID, name, title, description, category, startingPrice, endDate, images, seller } = req.body;
 
         const product = await Product.create({
+            itemID,
             name,
             title,
             description,
@@ -218,6 +220,41 @@ router.delete('/all', async (req, res) => {
             message: 'Error deleting products',
             error: error.message
         });
+    }
+});
+
+// @route   GET /api/products/export/json
+// @desc    Export all products as JSON (Admin only)
+// @access  Private/Admin
+router.get('/export/json', protect, requireAdmin, async (req, res) => {
+    try {
+        const products = await Product.find({}).populate('seller', 'username').lean();
+        const filename = `products-export-${new Date().toISOString().slice(0,10)}.json`;
+        
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        
+        res.status(200).json(products);
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Server Error' });
+    }
+});
+
+// @route   GET /api/products/export/xml
+// @desc    Export all products as XML (Admin only)
+// @access  Private/Admin
+router.get('/export/xml', protect, requireAdmin, async (req, res) => {
+    try {
+        const products = await Product.find({}).populate('seller', 'username').lean();
+        const xmlData = js2xmlparser.parse("products", { product: products });
+        const filename = `products-export-${new Date().toISOString().slice(0,10)}.xml`;
+
+        res.setHeader('Content-Type', 'application/xml');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+        res.status(200).send(xmlData);
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Server Error' });
     }
 });
 
