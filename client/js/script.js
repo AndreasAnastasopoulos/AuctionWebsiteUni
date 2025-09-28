@@ -22,95 +22,161 @@ let filteredProducts = [];
 let allProductsDisplay = [];
 
 // API Helper Functions
-const apiCall = async (endpoint, options = {}) => {
-    const config = {
-        ...options,
+async function apiCall(endpoint, options = {}) {
+    const baseURL = 'http://localhost:5001/api';
+
+    const defaultOptions = {
         headers: {
             'Content-Type': 'application/json',
-            ...options.headers
         }
     };
 
     // Add auth token if available
     if (authToken) {
-        config.headers.Authorization = `Bearer ${authToken}`;
+        defaultOptions.headers.Authorization = `Bearer ${authToken}`;
     }
 
+    const finalOptions = { ...defaultOptions, ...options };
+
+    console.log('Making API call to:', `${baseURL}${endpoint}`);
+    console.log('Request options:', finalOptions);
+
     try {
-        const response = await fetch(`${API_URL}${endpoint}`, config);
-        const data = await response.json();
+        const response = await fetch(`${baseURL}${endpoint}`, finalOptions);
+
+        console.log('Response status:', response.status);
+        console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
+        // Get response text first to see raw response
+        const responseText = await response.text();
+        console.log('Raw response:', responseText);
 
         if (!response.ok) {
-            throw new Error(data.message || 'API request failed');
+            let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+            let errorData = null;
+
+            try {
+                // Try to parse as JSON
+                errorData = JSON.parse(responseText);
+                console.log('Parsed error data:', errorData);
+                errorMessage = errorData.message || errorData.error || errorData.details || errorMessage;
+            } catch (jsonError) {
+                console.log('Response is not valid JSON');
+                errorMessage = responseText || errorMessage;
+            }
+
+            throw new Error(errorMessage);
         }
 
-        return data;
+        // Try to parse successful response as JSON
+        try {
+            return JSON.parse(responseText);
+        } catch (jsonError) {
+            console.log('Successful response is not JSON:', responseText);
+            return { success: true, data: responseText };
+        }
+
     } catch (error) {
         console.error('API Error:', error);
         throw error;
     }
-};
+}
 
 // Authentication Functions
 async function handleSignUp(event) {
     event.preventDefault();
 
-    // Get form values
-    const username = document.getElementById('signup-username').value;
-    const password = document.getElementById('signup-password').value;
-    const confirmPassword = document.getElementById('signup-confirm-password').value;
-    const fullName = document.getElementById('signup-fullname').value;
-    const email = document.getElementById('signup-email').value;
-    const phone = document.getElementById('signup-phone').value;
-
-    // Get address components
-    const streetName = document.getElementById('signup-address').value;
-    const streetNumber = document.getElementById('signup-address-number').value;
-    const cityCountry = document.getElementById('signup-city-country').value;
-    const address = `${streetName}, ${streetNumber}, ${cityCountry}`;
-
-    const ssn = document.getElementById('signup-ssn').value;
-
-    // Get coordinates if map is present
-    const latitude = document.getElementById('signup-latitude')?.value;
-    const longitude = document.getElementById('signup-longitude')?.value;
-
-    // Validate passwords match
-    if (password !== confirmPassword) {
-        alert('Passwords do not match!');
-        return;
-    }
-
-    // Split full name into first and last name
-    const nameParts = fullName.split(' ');
-    const firstName = nameParts[0] || '';
-    const lastName = nameParts.slice(1).join(' ') || '';
-
-    // Prepare request body
-    const requestBody = {
-        username,
-        email,
-        password,
-        firstName, // Use extracted first name
-        lastName, // Use extracted last name
-        phone,
-        address,
-        country: cityCountry.split(',').pop().trim(), // Extract country from cityCountry
-        ssn
-    };
-
-    // Add location if coordinates are available
-    if (latitude && longitude) {
-        requestBody.location = {
-            type: 'Point',
-            coordinates: [parseFloat(longitude), parseFloat(latitude)],
-            address: address
-        };
-    }
-
-    console.log('Signup request body:', requestBody);
-
     try {
+        // Get form values
+        const username = document.getElementById('signup-username').value.trim();
+        const password = document.getElementById('signup-password').value;
+        const confirmPassword = document.getElementById('signup-confirm-password').value;
+        const fullName = document.getElementById('signup-fullname').value.trim();
+        const email = document.getElementById('signup-email').value.trim().toLowerCase();
+        const phone = document.getElementById('signup-phone').value.trim();
+
+        // Get address components
+        const streetName = document.getElementById('signup-address').value.trim();
+        const streetNumber = document.getElementById('signup-address-number').value.trim();
+        const cityCountry = document.getElementById('signup-city-country').value.trim();
+        const address = `${streetName}, ${streetNumber}, ${cityCountry}`;
+
+        const ssn = document.getElementById('signup-ssn').value.trim();
+
+        // Get coordinates if map is present
+        const latitude = document.getElementById('signup-latitude')?.value;
+        const longitude = document.getElementById('signup-longitude')?.value;
+
+        // Validate required fields
+        if (!username || !password || !fullName || !email || !phone || !streetName || !streetNumber || !cityCountry || !ssn) {
+            alert('Please fill in all required fields');
+            return;
+        }
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            alert('Please enter a valid email address');
+            return;
+        }
+
+        // Validate password length
+        if (password.length < 6) {
+            alert('Password must be at least 6 characters long');
+            return;
+        }
+
+        // Validate passwords match
+        if (password !== confirmPassword) {
+            alert('Passwords do not match!');
+            return;
+        }
+
+        // Split full name into first and last name
+        const nameParts = fullName.split(' ');
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+
+        if (!firstName) {
+            alert('Please enter your full name (first and last name)');
+            return;
+        }
+
+        // Extract country from cityCountry (assume format: "City, Country")
+        const countryPart = cityCountry.split(',').pop().trim();
+        if (!countryPart) {
+            alert('Please enter city and country in format: "City, Country"');
+            return;
+        }
+
+        // Prepare request body
+        const requestBody = {
+            username,
+            email,
+            password,
+            firstName,
+            lastName,
+            phone,
+            address,
+            country: countryPart,
+            ssn
+        };
+
+        // Add location if coordinates are available
+        if (latitude && longitude && latitude !== '' && longitude !== '') {
+            requestBody.location = {
+                type: 'Point',
+                coordinates: [parseFloat(longitude), parseFloat(latitude)],
+                address: address
+            };
+        }
+
+        console.log('Signup request body:', requestBody);
+
+        // Clear any previous error messages
+        const usernameError = document.getElementById('usernameError');
+        if (usernameError) usernameError.style.display = 'none';
+
         const response = await apiCall('/auth/signup', {
             method: 'POST',
             body: JSON.stringify(requestBody)
@@ -119,17 +185,26 @@ async function handleSignUp(event) {
         console.log('Signup response:', response);
 
         if (response.success) {
-            // Redirect to waiting page
-            // showWaiting();
+            alert('Account created successfully! Please wait for admin approval.');
+            // Redirect to sign in page or waiting page
+            window.location.href = 'index.html';
         }
+
     } catch (error) {
         console.error('Signup error details:', error);
-        // Show error message
+
+        // Show specific error messages
         const usernameError = document.getElementById('usernameError');
-        if (error.message.includes('already exists')) {
+        const errorMessage = error.message.toLowerCase();
+
+        if (errorMessage.includes('username') && errorMessage.includes('exists')) {
             if (usernameError) usernameError.style.display = 'block';
+        } else if (errorMessage.includes('email') && errorMessage.includes('exists')) {
+            alert('Email address is already registered. Please use a different email.');
+        } else if (errorMessage.includes('ssn') && errorMessage.includes('exists')) {
+            alert('Social Security Number is already registered.');
         } else {
-            alert(error.message);
+            alert(`Signup failed: ${error.message}`);
         }
     }
 }
@@ -309,12 +384,6 @@ function filterByCategory(category) {
     const mobileMenu = document.getElementById('mobileMenu');
     if (mobileMenu && mobileMenu.style.display === 'block') {
         mobileMenu.style.display = 'none';
-    }
-
-    // Scroll to products section
-    const productsSection = document.querySelector('.products-section');
-    if (productsSection) {
-        productsSection.scrollIntoView({ behavior: 'smooth' });
     }
 }
 

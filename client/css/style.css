@@ -469,7 +469,7 @@ h3 {
     flex-direction: column;
     align-items: center;
     min-height: 100vh;
-    background: var(--PRIMARY-COLOR);
+    background: linear-gradient(135deg, var(--ACCENT-COLOR) 0%, var(--PRIMARY-COLOR) 100%);
     width: 100%;
     max-width: 100vw;
     overflow-x: hidden;
@@ -774,6 +774,8 @@ h3 {
     padding: 0 1rem;
     width: max-content;
     /* important: lets content define width */
+    padding-bottom: 8px;
+    padding-top: 8px;
 }
 
 
@@ -1133,8 +1135,12 @@ h3 {
 /* Welcome Page, Forms, Footer, Bid Modals, etc. remain the same */
 
 /* Additional User Dashboard Styles */
+#profilePage {
+    background: linear-gradient(135deg, var(--PRIMARY-COLOR) 0%, var(--ACCENT-COLOR) 100%);
+}
+
 .user-dashboard {
-    background: white;
+    background: ivory;
     border-radius: var(--border-radius);
     padding: 2rem;
     margin: 2rem auto;
@@ -1148,6 +1154,14 @@ h3 {
     border-bottom: 2px solid #e0e0e0;
     margin-bottom: 2rem;
     overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    /* Firefox */
+}
+
+.dashboard-tabs::-webkit-scrollbar {
+    display: none;
+    /* Chrome, Safari */
 }
 
 .tab-btn {

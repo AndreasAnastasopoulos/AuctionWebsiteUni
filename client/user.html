@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PAREDÓSE - My Account</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+
+<body>
+    <!-- User Profile Page -->
+    <div id="profilePage" class="viewer-container">
+        <!-- Reuse Main Navigation Header -->
+        <header class="viewer-header">
+            <div class="nav-container">
+                <div class="nav-left">
+                    <a href="viewer.html" style="text-decoration: none;"><h1 class="logo" style="margin-top: 12px;">PAREDÓSE.</h1></a>
+                </div>
+                <div class="nav-right">
+                    <div class="user-controls">
+                        <div class="user-dropdown">
+                            <button class="user-profile-btn" onclick="toggleUserMenu()">
+                                <div class="user-avatar"><i class="fas fa-user"></i></div>
+                                <i class="fas fa-chevron-down dropdown-arrow"></i>
+                            </button>
+                            <div class="dropdown-menu" id="userDropdownMenu" style="display: none;">
+                                <div class="dropdown-header">
+                                    <div class="user-info">
+                                        <span class="user-name" id="dropdownUserName">John Doe</span>
+                                        <span class="user-status" id="dropdownUserStatus">
+                                            <i class="fas fa-check-circle"></i> Active
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="dropdown-divider"></div>
+                                <a href="profile.html" class="dropdown-item"><i class="fas fa-user-circle"></i> My
+                                    Account</a>
+                                <a href="#" onclick="showMyBids()" class="dropdown-item"><i class="fas fa-gavel"></i> My
+                                    Bids</a>
+                                <a href="#" onclick="showWatchlist()" class="dropdown-item"><i class="fas fa-heart"></i>
+                                    Watchlist</a>
+                                <a href="#" onclick="showSettings()" class="dropdown-item"><i class="fas fa-cog"></i>
+                                    Settings</a>
+                                <div class="dropdown-divider"></div>
+                                <a href="#" onclick="logout()" class="dropdown-item logout-item"><i
+                                        class="fas fa-sign-out-alt"></i> Logout</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button class="mobile-menu-toggle" onclick="toggleMobileMenu()"><i class="fas fa-bars"></i></button>
+            </div>
+            <div class="mobile-menu" id="mobileMenu" style="display:none;">
+                <div class="mobile-user-section" id="mobileUserSection"></div>
+            </div>
+        </header>
+
+        <!-- User Dashboard -->
+        <section class="user-dashboard">
+            <div class="dashboard-tabs">
+                <button class="tab-btn active" onclick="showTab('overview')">Overview</button>
+                <button class="tab-btn" onclick="showTab('editProfile')">Edit Profile</button>
+                <button class="tab-btn" onclick="showTab('bids')">My Bids</button>
+                <button class="tab-btn" onclick="showTab('watchlist')">Watchlist</button>
+                <button class="tab-btn" onclick="showTab('settings')">Settings</button>
+            </div>
+
+            <!-- Tabs Content -->
+            <div id="overviewTab" class="tab-content">
+                <h2>Welcome, <span id="profileName">John Doe</span></h2>
+                <p>Status: <span style="color: #27ae60;"><i class="fas fa-check-circle"></i> Active</span></p>
+                <div style="margin-top:1.5rem;">
+                    <p><strong>Email:</strong> johndoe@example.com</p>
+                    <p><strong>Phone:</strong> +30 6900000000</p>
+                    <p><strong>Location:</strong> Athens, Greece</p>
+                </div>
+            </div>
+
+            <div id="editProfileTab" class="tab-content" style="display:none;">
+                <h2>Edit Profile</h2>
+                <form class="form-card">
+                    <div class="form-group">
+                        <label for="fullName">Full Name</label>
+                        <input type="text" id="fullName" value="John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" value="johndoe@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone</label>
+                        <input type="tel" id="phone" value="+30 6900000000">
+                    </div>
+                    <button type="button" class="btn btn-primary">Save Changes</button>
+                </form>
+            </div>
+
+            <div id="bidsTab" class="tab-content" style="display:none;">
+                <h2>My Bids</h2>
+                <p>Track your active and past bids here. (Future implementation)</p>
+            </div>
+
+            <div id="watchlistTab" class="tab-content" style="display:none;">
+                <h2>My Watchlist</h2>
+                <p>Your saved items will appear here. (Future implementation)</p>
+            </div>
+
+            <div id="settingsTab" class="tab-content" style="display:none;">
+                <h2>Settings</h2>
+                <p>Manage your preferences and account settings. (Future implementation)</p>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <div class="container">
+                <div class="footer-divider"></div>
+                <div class="footer-content">
+                    <div class="footer-logo-and-social">
+                        <span class="logo-footer">PAREDÓSE.</span>
+                        <a href="https://github.com/AndreasAnastasopoulos/AuctionWebsiteUni" target="_blank"
+                            class="social-link">
+                            <i class="fa-brands fa-github"></i>
+                        </a>
+                    </div>
+                    <div class="footer-contact">
+                        <div class="contact-item">
+                            <i class="fas fa-phone"></i>
+                            <span><a href="tel:+306948202941">6948202941</a></span>
+                        </div>
+                        <div class="contact-item" style="margin-left: 1.7rem;">
+                            <span><a href="tel:+306955814230">6955814230</a></span>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-envelope"></i>
+                            <span><a href="mailto:sdi1900009@di.uoa.gr">sdi1900009@di.uoa.gr</a></span>
+                        </div>
+                        <div class="contact-item" style="margin-left: 1.7rem;">
+                            <span><a href="mailto:sdi1900270@di.uoa.gr">sdi1900270@di.uoa.gr</a></span>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Athens, Attica, Greece</span>
+                        </div>
+                    </div>
+                </div>
+                <p style="font-size: 0.9rem;">© 2025 PAREDÓSE. <br> Made with love by <br> Αναστασόπουλος Ανδρέας &
+                    Αθανασόπουλος Πέτρος-Ερμής</p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="./js/script.js"></script>
+    <script>
+        // Simple tab switcher
+        function showTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+            document.getElementById(tab + 'Tab').style.display = 'block';
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+
+</html>
