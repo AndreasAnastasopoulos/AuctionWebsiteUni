@@ -59,21 +59,11 @@ const productSchema = new mongoose.Schema({
     }],
     location: String,
     country: String,
-    itemID: { // Unique identifier for the item
-        type: String,
-        required: true,
-        unique: true,
-        trim: true
-    },
     seller: { // Reference to the User model
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
     },
-    photos: [{ 
-        type: String,
-        required: false
-    }] // Array of image URLs
 }, 
 { timestamps: true });
 
@@ -81,6 +71,5 @@ const productSchema = new mongoose.Schema({
 productSchema.index({ status: 1, endDate: 1 });
 productSchema.index({ seller: 1 });
 productSchema.index({ category: 1 });
-productSchema.index({ itemID: 1 }); // Added index for itemID
 
 module.exports = mongoose.model('Product', productSchema);
