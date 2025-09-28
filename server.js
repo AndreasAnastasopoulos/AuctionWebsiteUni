@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
+const https = require('https'); // Import https module
+const fs = require('fs'); // Import fs module
 const recommendationRoutes = require('./recommendation/recommendationRoutes');
 
 // Load environment variables
@@ -12,10 +14,10 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors({
-    origin: 'http://localhost:5001', // Add your frontend URLs
-    credentials: true
-}));
+// app.use(cors({
+//     origin: 'http://localhost:5001', // Add your frontend URLs
+//     credentials: true
+// }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -64,11 +66,17 @@ mongoose.connect(process.env.MONGODB_URI, {
 .then(() => console.log('MongoDB connected successfully'))
 .catch(err => console.error('MongoDB connection error:', err));
 
+// SSL options
+const sslOptions = {
+    key: fs.readFileSync(path.join(__dirname, 'ssl/server.key')),
+    cert: fs.readFileSync(path.join(__dirname, 'ssl/server.crt'))
+};
+
 // Start server
 const PORT = process.env.PORT;
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log(`Visit http://localhost:${PORT} to view the site`);
+https.createServer(sslOptions, app).listen(PORT, () => {
+    console.log(`Server running on port ${PORT} with SSL`);
+    console.log(`Visit https://localhost:${PORT} to view the site`);
 });
 
 // Handle unhandled promise rejections

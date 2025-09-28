@@ -174,19 +174,21 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// @route   POST /api/products
-router.post('/', protect, requireActive, async (req, res) => {
+// @route   POST /api/products , protect, requireActive
+router.post('/', async (req, res) => {
     try {
-        const { title, description, category, startingPrice, endDate, images } = req.body;
+        const { name, title, description, category, startingPrice, endDate, images, seller } = req.body;
 
         const product = await Product.create({
+            name,
             title,
             description,
             category,
             startingPrice,
             endDate,
             images,
-            seller: req.user._id
+            seller
+            // seller: req.user._id
         });
 
         res.status(201).json({
@@ -197,6 +199,23 @@ router.post('/', protect, requireActive, async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Error creating product',
+            error: error.message
+        });
+    }
+});
+
+// @route   delete /api/products/all
+router.delete('/all', async (req, res) => {
+    try {
+        await Product.deleteMany();
+        res.json({
+            success: true,
+            message: 'All products deleted'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error deleting products',
             error: error.message
         });
     }
