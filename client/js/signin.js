@@ -1,13 +1,29 @@
+document.addEventListener('DOMContentLoaded', () => {
+    const signInForm = document.querySelector('form');
+    if (signInForm) {
+        signInForm.addEventListener('submit', handleSignIn);
+    }
+
+    // If user is already logged in, redirect them
+    if (authToken && currentUser) {
+        if (currentUser.role === 'admin') {
+            window.location.href = 'admin-dashboard.html';
+        } else {
+            showViewer();
+        }
+    }
+});
+
 async function handleSignIn(event) {
     event.preventDefault();
-
     const username = document.getElementById('signin-username').value;
     const password = document.getElementById('signin-password').value;
+    const errorDiv = document.getElementById('signInError');
 
     try {
         const response = await apiCall('/auth/signin', {
             method: 'POST',
-            body: JSON.stringify({ username, password })
+            body: JSON.stringify({ username, password }),
         });
 
         if (response.success) {
@@ -16,23 +32,16 @@ async function handleSignIn(event) {
             
             if (response.user.role === 'admin') {
                 window.location.href = 'admin-dashboard.html';
-            } else {
+            } else if (response.user.status === 'active') {
                 showViewer();
+            } else {
+                window.location.href = 'waiting.html';
             }
         }
     } catch (error) {
-        alert('Invalid username or password');
+        if (errorDiv) {
+            errorDiv.textContent = error.message || 'Invalid username or password.';
+            errorDiv.style.display = 'block';
+        }
     }
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-    const signInForm = document.getElementById('signInForm');
-    if (signInForm) {
-        signInForm.addEventListener('submit', handleSignIn);
-    }
-
-    // Redirect if already logged in
-    if (authToken && currentUser) {
-        showViewer();
-    }
-});

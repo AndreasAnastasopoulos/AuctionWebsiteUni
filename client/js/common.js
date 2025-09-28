@@ -4,13 +4,13 @@ let authToken = localStorage.getItem('authToken');
 let currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
 
 // --- API HELPER ---
-const apiCall = async (endpoint, options = {}) => {
+async function apiCall(endpoint, options = {}) {
     const config = {
         ...options,
         headers: {
             'Content-Type': 'application/json',
-            ...options.headers
-        }
+            ...options.headers,
+        },
     };
 
     if (authToken) {
@@ -19,20 +19,42 @@ const apiCall = async (endpoint, options = {}) => {
 
     try {
         const response = await fetch(`${API_URL}${endpoint}`, config);
-        const data = await response.json();
+        const responseText = await response.text();
 
         if (!response.ok) {
-            throw new Error(data.message || 'API request failed');
+            // Try to parse error response, but fall back to text
+            try {
+                const errorData = JSON.parse(responseText);
+                throw new Error(errorData.message || 'Server Error');
+            } catch (e) {
+                throw new Error(responseText || 'Server Error');
+            }
         }
 
-        return data;
+        // Try to parse successful response as JSON
+        try {
+            return JSON.parse(responseText);
+        } catch (jsonError) {
+            // Handle cases where the server sends a non-JSON success response
+            return { success: true, data: responseText };
+        }
     } catch (error) {
         console.error('API Error:', error);
         throw error;
     }
-};
+}
 
-// --- UTILITY FUNCTIONS ---
+// --- AUTH & HEADER ---
+function logout() {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('currentUser');
+    authToken = null;
+    currentUser = null;
+    // Redirect to sign-in page after logout
+    window.location.href = 'signin.html';
+}
+
+// --- UTILITY & UI FUNCTIONS ---
 function calculateTimeLeft(endDate) {
     const now = new Date();
     const end = new Date(endDate);
@@ -51,10 +73,10 @@ function calculateTimeLeft(endDate) {
 
 function getTimeAgo(date) {
     const now = new Date();
-    const diffMs = now - date;
-    const diffMins = Math.floor(diffMs / (1000 * 60));
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const diffMs = now - new Date(date);
+    const diffMins = Math.round(diffMs / (1000 * 60));
+    const diffHours = Math.round(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
 
     if (diffMins < 1) return 'Just now';
     if (diffMins < 60) return `${diffMins}m ago`;
@@ -62,53 +84,7 @@ function getTimeAgo(date) {
     return `${diffDays}d ago`;
 }
 
-
-// --- AUTH & HEADER ---
-function logout() {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('currentUser');
-    authToken = null;
-    currentUser = null;
-    window.location.href = 'index.html';
-}
-
-function updateAuthenticatedHeader() {
-    // This function can be expanded if needed, but for now, navigation is handled by page-specific logic
-}
-
-// --- UI & NAVIGATION ---
-function toggleMobileMenu() {
-    const mobileMenu = document.getElementById('mobileMenu');
-    if (mobileMenu) {
-        mobileMenu.style.display = mobileMenu.style.display === 'block' ? 'none' : 'block';
-    }
-}
-
-function toggleUserMenu() {
-    const dropdownMenu = document.getElementById('userDropdownMenu');
-    if (dropdownMenu) {
-        dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
-    }
-}
-
-function initializeBackToTop() {
-    const backToTopButton = document.querySelector('.back-to-top');
-    if (backToTopButton) {
-        window.addEventListener('scroll', () => {
-            backToTopButton.classList.toggle('active', window.pageYOffset > 300);
-        });
-        backToTopButton.addEventListener('click', () => {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-    }
-}
-
 // --- PAGE REDIRECTION ---
 function showViewer() {
     window.location.href = 'viewer.html';
 }
-
-// Initialize common elements on every page
-document.addEventListener('DOMContentLoaded', () => {
-    initializeBackToTop();
-});
