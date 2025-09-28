@@ -16,7 +16,9 @@
         <header class="viewer-header">
             <div class="nav-container">
                 <div class="nav-left">
-                    <a href="viewer.html" style="text-decoration: none;"><h1 class="logo" style="margin-top: 12px;">PAREDÓSE.</h1></a>
+                    <a href="viewer.html" style="text-decoration: none;">
+                        <h1 class="logo" style="margin-top: 12px;">PAREDÓSE.</h1>
+                    </a>
                 </div>
                 <div class="nav-right">
                     <div class="user-controls">
@@ -35,7 +37,7 @@
                                     </div>
                                 </div>
                                 <div class="dropdown-divider"></div>
-                                <a href="profile.html" class="dropdown-item"><i class="fas fa-user-circle"></i> My
+                                <a href="user.html" class="dropdown-item"><i class="fas fa-user-circle"></i> My
                                     Account</a>
                                 <a href="#" onclick="showMyBids()" class="dropdown-item"><i class="fas fa-gavel"></i> My
                                     Bids</a>
@@ -152,7 +154,8 @@
         </footer>
     </div>
 
-    <script src="./js/script.js"></script>
+    <script src="./js/common.js"></script>
+    <script src="./js/viewer.js"></script>
     <script>
         // Simple tab switcher
         function showTab(tab) {

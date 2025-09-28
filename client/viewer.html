@@ -36,14 +36,13 @@
 
                 <!-- Right Section - Auth/User -->
                 <div class="nav-right" id="headerRight">
-                    <!-- Guest View (default) -->
+                    <!-- Guest/Pending User View (default) -->
                     <div class="guest-controls">
                         <a href="signin.html" class="btn btn-primary nav-signup-btn">Sign In</a>
                         <a href="signup.html" class="btn btn-secondary nav-signup-btn">Sign Up</a>
-                        <button class="btn btn-sm btn-outline" onclick="logout()">Logout</button>
                     </div>
 
-                    <!-- Authenticated User View (hidden by default, shown via JS) -->
+                    <!-- Verified Active User View (hidden by default, shown via JS) -->
                     <div class="user-controls" style="display: none;">
                         <button class="icon-btn chat-btn" onclick="showChatHistory()" title="Messages">
                             <i class="fas fa-comments"></i>
@@ -51,9 +50,9 @@
                         </button>
                         <div class="user-dropdown">
                             <button class="user-profile-btn" onclick="toggleUserMenu()">
-                                <div class="user-avatar">
+                                <span class="user-avatar">
                                     <i class="fas fa-user"></i>
-                                </div>
+                                </span>
                                 <i class="fas fa-chevron-down dropdown-arrow"></i>
                             </button>
                             <div class="dropdown-menu" id="userDropdownMenu" style="display: none;">
@@ -66,8 +65,8 @@
                                     </div>
                                 </div>
                                 <div class="dropdown-divider"></div>
-                                <a href="#" onclick="showMyAccount()" class="dropdown-item">
-                                    <i class="fas fa-user-circle"></i> My Account
+                                <a href="user.html" class="dropdown-item">
+                                    <i class="fas fa-user-circle"></i> My Dashboard
                                 </a>
                                 <a href="#" onclick="showMyBids()" class="dropdown-item">
                                     <i class="fas fa-gavel"></i> My Bids
@@ -159,6 +158,27 @@
                 </div>
             </div>
         </header>
+        <script>
+            // Toggle navbar elements based on user status
+            document.addEventListener('DOMContentLoaded', function () {
+                let currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+                const guestControls = document.querySelector('.guest-controls');
+                const userControls = document.querySelector('.user-controls');
+                if (!currentUser || currentUser.status === 'pending') {
+                    guestControls.style.display = 'flex';
+                    userControls.style.display = 'none';
+                } else if (currentUser.status === 'active') {
+                    guestControls.style.display = 'none';
+                    userControls.style.display = 'flex';
+                    // Optionally set user name/status in dropdown
+                    document.getElementById('dropdownUserName').textContent = currentUser.name || 'User';
+                    document.getElementById('dropdownUserStatus').innerHTML = '<i class="fas fa-check-circle"></i> Active';
+                } else {
+                    guestControls.style.display = 'flex';
+                    userControls.style.display = 'none';
+                }
+            });
+        </script>
 
         <section class="products-section">
             <h2 class="section-title" style="color: ivory;">Featured Auctions</h2>

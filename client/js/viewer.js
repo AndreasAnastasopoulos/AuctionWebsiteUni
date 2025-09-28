@@ -510,3 +510,142 @@ function addUserLocationMarker(lat, lon) {
         .bindPopup('<b>Your Location</b>')
         .addTo(productsMap);
 }
+
+// Toggle mobile menu
+function toggleMobileMenu() {
+    const mobileMenu = document.getElementById('mobileMenu');
+    const mobileUserSection = document.getElementById('mobileUserSection');
+
+    if (mobileMenu.style.display === 'none' || !mobileMenu.style.display) {
+        mobileMenu.style.display = 'block';
+
+        // Update mobile user section based on auth status
+        if (currentUser && currentUser.status === 'active') {
+            mobileUserSection.innerHTML = `
+                <div class="mobile-user-info">
+                    <div class="user-avatar" style="margin: 0 auto 1rem;">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <p style="text-align: center; margin-bottom: 1rem;">
+                        <strong>${currentUser.fullName}</strong><br>
+                         <span style="color: #27ae60; font-size: 0.9rem;">
+                            <i class="fas fa-check-circle"></i> Active
+                        </span>
+                    </p>
+                    <button class="btn btn-outline" style="width: 100%; margin-top: 0.5rem;" onclick="logout()">
+                        Logout
+                    </button>
+                </div>
+            `;
+        } else if (currentUser && currentUser.status === 'pending') {
+            mobileUserSection.innerHTML = `
+                <div class="pending-user-info">
+                    <i class="fas fa-clock"></i> Account Pending Approval
+                </div>
+                <button class="btn btn-outline" style="width: 100%;" onclick="logout()">
+                    Logout
+                </button>
+            `;
+        } else {
+            mobileUserSection.innerHTML = `
+                <a href="signin.html" class="btn btn-primary" style="width: 100%; margin-bottom: 0.5rem;">
+                    Sign In
+                </a>
+                <a href="signup.html" class="btn btn-secondary" style="width: 100%;">
+                    Sign Up
+                </a>
+            `;
+        }
+    } else {
+        mobileMenu.style.display = 'none';
+    }
+}
+
+// Toggle user dropdown menu
+function toggleUserMenu() {
+    const dropdownMenu = document.getElementById('userDropdownMenu');
+
+    if (dropdownMenu.style.display === 'none' || !dropdownMenu.style.display) {
+        dropdownMenu.style.display = 'block';
+
+        // Close dropdown when clicking outside
+        setTimeout(() => {
+            document.addEventListener('click', closeUserMenuOnClickOutside);
+        }, 100);
+    } else {
+        dropdownMenu.style.display = 'none';
+        document.removeEventListener('click', closeUserMenuOnClickOutside);
+    }
+}
+
+// Close user menu when clicking outside
+function closeUserMenuOnClickOutside(event) {
+    const dropdown = document.querySelector('.user-dropdown');
+    if (!dropdown.contains(event.target)) {
+        document.getElementById('userDropdownMenu').style.display = 'none';
+        document.removeEventListener('click', closeUserMenuOnClickOutside);
+    }
+}
+
+// Show chat history modal (placeholder for now)
+function showChatHistory() {
+    const chatModal = document.getElementById('chatHistoryModal');
+    if (chatModal) {
+        chatModal.style.display = 'flex';
+    }
+}
+
+// Close chat history modal
+function closeChatHistory() {
+    const chatModal = document.getElementById('chatHistoryModal');
+    if (chatModal) {
+        chatModal.style.display = 'none';
+    }
+}
+
+// Placeholder functions for user menu items
+function showMyBids() {
+    alert(`My Bids Dashboard
+
+ 📊 Active Bids: 5
+ 🏆 Won Auctions: 2
+ ⏰ Ending Soon: 3
+
+ This feature is coming soon!
+ You'll be able to:
+ • Track all your active bids
+ • See outbid notifications
+ • View bidding history
+ • Manage auto-bidding settings`);
+}
+
+function showWatchlist() {
+    alert(`My Watchlist
+
+ ❤️ Watched Items: 12
+ 🔔 Price Alerts: 3
+ 📈 Trending in Watchlist: Electronics
+
+ This feature is coming soon!
+ You'll be able to:
+ • Save items to watch
+ • Get notifications when bidding starts
+ • Set price alerts
+ • Organize items into collections`);
+}
+
+function showSettings() {
+    alert(`Account Settings
+
+ 🔔 Notifications: Email & Push
+ 🌍 Language: English
+ 💳 Payment Methods: 2 saved
+ 🔒 Privacy: Standard
+
+ This feature is coming soon!
+ You'll be able to:
+ • Manage notification preferences
+ • Update payment methods
+ • Change privacy settings
+ • Configure bidding preferences`);
+}
