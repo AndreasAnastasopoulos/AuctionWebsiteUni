@@ -1,3 +1,4 @@
+
 // Run this script to create an admin user
 // Usage: node create-admin.js
 

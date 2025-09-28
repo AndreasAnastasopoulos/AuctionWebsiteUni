@@ -13,7 +13,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-    origin: ['http://localhost:3000', 'http://localhost:5001', 'http://127.0.0.1:5500'], // Add your frontend URLs
+    origin: 'http://localhost:5001', // Add your frontend URLs
     credentials: true
 }));
 app.use(express.json());
@@ -77,3 +77,5 @@ process.on('unhandledRejection', (err) => {
     // Close server & exit process
     process.exit(1);
 });
+
+
