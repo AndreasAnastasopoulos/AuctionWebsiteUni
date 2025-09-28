@@ -16,9 +16,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function handleSignIn(event) {
     event.preventDefault();
-    const username = document.getElementById('signin-username').value;
-    const password = document.getElementById('signin-password').value;
+    const username = document.getElementById('signin-username').value.trim(); // Trim whitespace
+    const password = document.getElementById('signin-password').value.trim(); // Trim whitespace
     const errorDiv = document.getElementById('signInError');
+    // Hide previous errors
+    if(errorDiv) errorDiv.style.display = 'none';
 
     try {
         const response = await apiCall('/auth/signin', {
@@ -35,12 +37,15 @@ async function handleSignIn(event) {
             } else if (response.user.status === 'active') {
                 showViewer();
             } else {
+                // This will catch 'pending', 'suspended', or any other status
+                // and redirect to the waiting page.
                 window.location.href = 'waiting.html';
             }
         }
     } catch (error) {
         if (errorDiv) {
-            errorDiv.textContent = error.message || 'Invalid username or password.';
+            // Display the specific message from the server
+            errorDiv.textContent = error.message || 'An unknown error occurred.';
             errorDiv.style.display = 'block';
         }
     }

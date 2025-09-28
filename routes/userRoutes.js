@@ -200,4 +200,19 @@ router.get('/all', async (req, res) => {
     }
 });
 
+router.delete('/all', async (req, res) => {
+    try {
+        await User.deleteMany({});
+        res.status(200).json({
+            success: true,
+            message: 'All users deleted'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Server Error'
+        });
+    }
+});
+
 module.exports = router;

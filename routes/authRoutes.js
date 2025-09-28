@@ -65,8 +65,8 @@ router.post('/signup', [
         });
 
         // Hash password
-        const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(password, salt);
+        // const salt = await bcrypt.genSalt(10);
+        // user.password = await bcrypt.hash(password, salt);
 
         await user.save();
 
@@ -126,21 +126,23 @@ router.post('/signin', [
         if (!user) {
             return res.status(400).json({
                 success: false,
-                message: 'Invalid credentials'
+                message: 'Invalid credentials1'
             });
         }
 
         // Compare password
-        const isMatch = await bcrypt.compare(password, user.password);
+        // const isMatch = await bcrypt.compare(password, user.password);
+        const isMatch = await user.comparePassword(password);
 
         if (!isMatch) {
             return res.status(400).json({
                 success: false,
-                message: 'Invalid credentials'
+                message: 'Invalid credentials2'
             });
         }
-         // Check if user is suspended
-         if (user.status === 'suspended') {
+        
+        // Check if user is suspended
+        if (user.status === 'suspended') {
             return res.status(403).json({
                 success: false,
                 message: 'Your account is suspended. Please contact support.'
