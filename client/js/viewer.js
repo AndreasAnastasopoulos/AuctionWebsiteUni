@@ -8,6 +8,7 @@ const productsPerPage = 9;
 let filteredProducts = [];
 let allProductsDisplay = [];
 window.allProducts = [];
+let userLocationMarker = null;
 
 // --- PRODUCT & BIDDING LOGIC ---
 async function loadProducts() {
@@ -189,7 +190,7 @@ function applyFilters() {
     const category = document.getElementById('categoryFilter')?.value || '';
     const sortOption = document.getElementById('priceSort')?.value || '';
 
-    filteredProducts = allProductsDisplay.filter(p => 
+    filteredProducts = allProductsDisplay.filter(p =>
         (p.title.toLowerCase().includes(searchTerm) || p.category.toLowerCase().includes(searchTerm)) &&
         (category === '' || p.category === category)
     );
@@ -199,7 +200,7 @@ function applyFilters() {
         case 'high-low': filteredProducts.sort((a, b) => b.currentPrice - a.currentPrice); break;
         case 'ending-soon': filteredProducts.sort((a, b) => new Date(a.endDate) - new Date(b.endDate)); break;
     }
-    
+
     currentPage = 1;
     displayProductsWithPagination();
 }
@@ -248,7 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // This check was too strict and blocked guest viewers.
     // The page will now load for everyone, and other functions will handle
     // showing/hiding content based on whether a user is logged in.
-    
+
     // updateAuthenticatedHeader(); // This function is not defined, so it's commented out.
     loadProducts();
 
@@ -259,3 +260,253 @@ document.addEventListener('DOMContentLoaded', () => {
     // document.getElementById('categoryFilter')?.addEventListener('change', applyFilters);
     // document.getElementById('priceSort')?.addEventListener('change', applyFilters);
 });
+
+// Toggle advanced filters
+function toggleAdvancedFilters() {
+    const advancedFilters = document.getElementById('advancedFilters');
+    if (advancedFilters) {
+        advancedFilters.style.display = advancedFilters.style.display === 'none' ? 'flex' : 'none';
+    }
+}
+
+// Clear all filters
+function clearFilters() {
+    const categoryEl = document.getElementById('categoryFilter');
+    const sortEl = document.getElementById('priceSort');
+    const searchEl = document.getElementById('productSearch');
+    const minPriceEl = document.getElementById('minPrice');
+    const maxPriceEl = document.getElementById('maxPrice');
+    const timeFilterEl = document.getElementById('timeFilter');
+    const advancedEl = document.getElementById('advancedFilters');
+
+    if (categoryEl) categoryEl.value = '';
+    if (sortEl) sortEl.value = '';
+    if (searchEl) searchEl.value = '';
+    if (minPriceEl) minPriceEl.value = '';
+    if (maxPriceEl) maxPriceEl.value = '';
+    if (timeFilterEl) timeFilterEl.value = '';
+
+    filteredProducts = [...allProductsDisplay];
+    currentPage = 1;
+    displayProductsWithPagination();
+
+    // Hide advanced filters
+    if (advancedEl) advancedEl.style.display = 'none';
+}
+
+// Search products
+function searchProducts() {
+    // Sync all search inputs
+    const headerSearchInput = document.getElementById('headerProductSearch');
+    const productSearchInput = document.getElementById('productSearch');
+    const mobileSearchInput = document.querySelector('.mobile-search-input');
+
+    // Get search term from any of the inputs
+    const searchTerm = (productSearchInput?.value ||
+        headerSearchInput?.value ||
+        mobileSearchInput?.value || '').toLowerCase();
+
+    // Sync all inputs
+    if (headerSearchInput) headerSearchInput.value = searchTerm;
+    if (productSearchInput) productSearchInput.value = searchTerm;
+    if (mobileSearchInput) mobileSearchInput.value = searchTerm;
+
+    // Perform the search
+    if (searchTerm === '') {
+        filteredProducts = [...allProductsDisplay];
+    } else {
+        filteredProducts = allProductsDisplay.filter(product =>
+            product.title.toLowerCase().includes(searchTerm) ||
+            product.category.toLowerCase().includes(searchTerm)
+        );
+    }
+
+    currentPage = 1;
+    displayProductsWithPagination();
+}
+
+// Filter products by category
+function filterProducts() {
+    const categoryFilter = document.getElementById('categoryFilter');
+    if (!categoryFilter) return;
+
+    const category = categoryFilter.value;
+
+    if (category === '') {
+        filteredProducts = [...allProductsDisplay];
+    } else {
+        filteredProducts = allProductsDisplay.filter(product =>
+            product.category === category
+        );
+    }
+
+    // Apply any existing search
+    const searchInput = document.getElementById('productSearch');
+    if (searchInput) {
+        const searchTerm = searchInput.value.toLowerCase();
+        if (searchTerm !== '') {
+            filteredProducts = filteredProducts.filter(product =>
+                product.title.toLowerCase().includes(searchTerm)
+            );
+        }
+    }
+
+    currentPage = 1;
+    displayProductsWithPagination();
+}
+
+// Sort products
+function sortProducts() {
+    const priceSort = document.getElementById('priceSort');
+    if (!priceSort) return;
+
+    const sortOption = priceSort.value;
+
+    switch (sortOption) {
+        case 'low-high':
+            filteredProducts.sort((a, b) => a.currentPrice - b.currentPrice);
+            break;
+        case 'high-low':
+            filteredProducts.sort((a, b) => b.currentPrice - a.currentPrice);
+            break;
+        case 'ending-soon':
+            filteredProducts.sort((a, b) => new Date(a.endDate) - new Date(b.endDate));
+            break;
+        case 'most-bids':
+            filteredProducts.sort((a, b) => b.bidCount - a.bidCount);
+            break;
+        default:
+            // Reset to original order
+            filteredProducts = [...allProductsDisplay];
+            filterProducts(); // Reapply filters
+            return;
+    }
+
+    currentPage = 1;
+    displayProductsWithPagination();
+}
+
+// Filter by category from navigation
+function filterByCategory(category) {
+    // Update active category button
+    const categoryButtons = document.querySelectorAll('.category-btn');
+    categoryButtons.forEach(btn => {
+        btn.classList.remove('active');
+        if ((category === '' && btn.textContent.includes('All')) ||
+            btn.textContent.includes(category)) {
+            btn.classList.add('active');
+        }
+    });
+
+    // Update the category filter dropdown to match
+    const categoryFilter = document.getElementById('categoryFilter');
+    if (categoryFilter) {
+        categoryFilter.value = category;
+    }
+
+    // Apply the filter
+    if (category === '') {
+        filteredProducts = [...allProductsDisplay];
+    } else {
+        filteredProducts = allProductsDisplay.filter(product =>
+            product.category === category
+        );
+    }
+
+    // Reset to first page and display
+    currentPage = 1;
+    displayProductsWithPagination();
+
+    // Close mobile menu if open
+    const mobileMenu = document.getElementById('mobileMenu');
+    if (mobileMenu && mobileMenu.style.display === 'block') {
+        mobileMenu.style.display = 'none';
+    }
+}
+
+// Search location by text
+async function searchLocation() {
+    const searchText = document.getElementById('locationSearch');
+    if (!searchText) return;
+
+    if (!searchText.value) {
+        alert('Please enter a location to search');
+        return;
+    }
+
+    try {
+        // Use Nominatim API for geocoding
+        const response = await fetch(
+            `https://nominatim.openstreetmap.org/search?` +
+            `format=json&q=${encodeURIComponent(searchText.value)}&limit=1`
+        );
+
+        const data = await response.json();
+
+        if (data && data.length > 0) {
+            const lat = parseFloat(data[0].lat);
+            const lon = parseFloat(data[0].lon);
+
+            // Center map on location
+            productsMap.setView([lat, lon], 10);
+
+            // Add user location marker
+            addUserLocationMarker(lat, lon);
+
+            // Store current location
+            currentUserLocation = { lat, lon };
+        } else {
+            alert('Location not found. Please try a different search.');
+        }
+    } catch (error) {
+        console.error('Search error:', error);
+        alert('Error searching location. Please try again.');
+    }
+}
+
+// Search near user's current location
+function searchNearMe() {
+    if (!navigator.geolocation) {
+        alert('Geolocation is not supported by your browser');
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+
+            // Center map on user location
+            productsMap.setView([lat, lon], 11);
+
+            // Add user location marker
+            addUserLocationMarker(lat, lon);
+
+            // Store current location
+            currentUserLocation = { lat, lon };
+        },
+        (error) => {
+            console.error('Geolocation error:', error);
+            alert('Could not get your location. Please enable location services and try again.');
+        }
+    );
+}
+
+// Add user location marker
+function addUserLocationMarker(lat, lon) {
+    // Remove existing user location marker
+    if (userLocationMarker) {
+        productsMap.removeLayer(userLocationMarker);
+    }
+
+    // Custom icon for user location
+    const userIcon = L.icon({
+        iconUrl: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjZTc0YzNjIj48Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSI4Ii8+PC9zdmc+',
+        iconSize: [24, 24],
+        iconAnchor: [12, 12]
+    });
+
+    userLocationMarker = L.marker([lat, lon], { icon: userIcon })
+        .bindPopup('<b>Your Location</b>')
+        .addTo(productsMap);
+}
