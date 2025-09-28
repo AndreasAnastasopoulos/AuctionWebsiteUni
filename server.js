@@ -6,6 +6,16 @@ const path = require('path');
 const https = require('https'); // Import https module
 const fs = require('fs'); // Import fs module
 const recommendationRoutes = require('./recommendation/recommendationRoutes');
+const interactionRoutes = require('./routes/interactionRoutes');
+const MatrixFactorizationRecommender = require('./recommendation/MatrixFactorizationRecommender');
+
+// Initialize recommender
+const recommender = new MatrixFactorizationRecommender({
+    k: 10,
+    learningRate: 0.01,
+    regularization: 0.01,
+    iterations: 100
+});
 
 // Load environment variables
 dotenv.config();
@@ -36,6 +46,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/bids', bidRoutes);
 app.use('/api', recommendationRoutes);
+app.use('/api/interactions', interactionRoutes);
 
 // DB reference for recommendations
 mongoose.connection.once('open', () => {
@@ -47,6 +58,41 @@ mongoose.connection.once('open', () => {
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, './client/index.html'));
 });
+
+// Retrain recommendation model periodically
+async function trainRecommendationModel() {
+    try {
+        const UserInteraction = require('./models/UserInteraction');
+        const Product = require('./models/Product');
+
+        // Get all interactions and products
+        const interactions = await UserInteraction.find({}).lean();
+        const products = await Product.find({ status: 'active' }).lean();
+
+        // Prepare data for training
+        const sparseMatrix = recommender.prepareData(interactions, products);
+        
+        // Train the model
+        if (sparseMatrix.length > 0) {
+            recommender.train(sparseMatrix);
+            console.log('Recommendation model trained successfully');
+        } else {
+            console.log('No data available for training');
+        }
+    } catch (error) {
+        console.error('Error training recommendation model:', error);
+    }
+}
+
+// Train model on startup
+mongoose.connection.once('open', async () => {
+    app.locals.db = mongoose.connection.db;
+    console.log('MongoDB connected for recommendations');
+    await trainRecommendationModel();
+});
+
+// Retrain model every 24 hours
+setInterval(trainRecommendationModel, 24 * 60 * 60 * 1000);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

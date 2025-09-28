@@ -2325,7 +2325,7 @@ footer .container>p {
 .recommendations-section {
     margin: 20px 0;
     padding: 20px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--ACCENT-COLOR) 0%, var(--ACCENT-COLOR2) 100%);
     border-radius: 12px;
 }
 
@@ -2381,6 +2381,24 @@ footer .container>p {
 
 .recommendation-card button:hover {
     background: #5568d3;
+}
+
+.no-recommendations {
+    text-align: center;
+    padding: 2rem;
+    background: #f8f9fa;
+    border-radius: var(--border-radius);
+}
+
+.no-recommendations i {
+    font-size: 3rem;
+    color: var(--TEXT-COLOR-LIGHT);
+    margin-bottom: 1rem;
+}
+
+.no-recommendations p {
+    color: var(--TEXT-COLOR);
+    font-size: 1.1rem;
 }
 
 /* Create Auction Page */
