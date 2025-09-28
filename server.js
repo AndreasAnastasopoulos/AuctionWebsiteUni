@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
+const recommendationRoutes = require('./recommendation/recommendationRoutes');
 
 // Load environment variables
 dotenv.config();
@@ -32,6 +33,13 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/bids', bidRoutes);
+app.use('/api', recommendationRoutes);
+
+// DB reference for recommendations
+mongoose.connection.once('open', () => {
+    app.locals.db = mongoose.connection.db;
+    console.log('MongoDB connected for recommendations');
+});
 
 // Serve index.html for root route
 app.get('/', (req, res) => {
