@@ -392,8 +392,9 @@ function filterByCategory(category) {
     const categoryButtons = document.querySelectorAll('.category-btn');
     categoryButtons.forEach(btn => {
         btn.classList.remove('active');
-        if ((category === '' && btn.textContent.includes('All')) ||
-            btn.textContent.includes(category)) {
+        const btnCategory = btn.querySelector('span')?.textContent || '';
+        if ((category === '' && btnCategory === 'All') ||
+            btnCategory === category) {
             btn.classList.add('active');
         }
     });
@@ -648,4 +649,26 @@ function showSettings() {
  • Update payment methods
  • Change privacy settings
  • Configure bidding preferences`);
+}
+
+// Back to Top Button
+function initializeBackToTop() {
+    const backToTopButton = document.querySelector('.back-to-top');
+
+    if (backToTopButton) {
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                backToTopButton.classList.add('active');
+            } else {
+                backToTopButton.classList.remove('active');
+            }
+        });
+
+        backToTopButton.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    }
 }

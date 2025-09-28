@@ -1627,9 +1627,9 @@ footer .container>p {
 
 .filter-btn {
     padding: 0.75rem 1rem;
-    background: var(--ACCENT-COLOR2);
-    color: white;
-    border: none;
+    background: ivory;
+    color: var(--ACCENT-COLOR2);
+    border-color: var(--ACCENT-COLOR);
     border-radius: var(--border-radius);
     cursor: pointer;
     display: flex;
@@ -1640,7 +1640,6 @@ footer .container>p {
 }
 
 .filter-btn:hover {
-    background: var(--ACCENT-COLOR);
     transform: translateY(-2px);
 }
 
