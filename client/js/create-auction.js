@@ -71,11 +71,11 @@ async function createAuction(event) {
         const reservePrice = parseFloat(document.getElementById('reservePrice').value) || startingPrice;
         const endDate = new Date(document.getElementById('endDate').value);
         const location = document.getElementById('location').value;
-        const imageFiles = document.getElementById('images').files;
+        const imageFiles = document.getElementById('images').value;
         const currentUser = JSON.parse(localStorage.getItem('currentUser'));
 
         // Validate form
-        if (!title || !category || !description || !startingPrice || !endDate || !location || imageFiles.length === 0) {
+        if (!title || !category || !description || !startingPrice || !endDate || !location ) {
             throw new Error('Please fill in all required fields');
         }
 
@@ -85,20 +85,20 @@ async function createAuction(event) {
             formData.append('images', file);
         });
 
-        // Upload images first
-        const imageUploadResponse = await fetch('/api/upload', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'Authorization': `Bearer ${currentUser.token}`
-            }
-        });
+        // // Upload images first
+        // const imageUploadResponse = await fetch('/api/upload', {
+        //     method: 'POST',
+        //     body: formData,
+        //     headers: {
+        //         'Authorization': `Bearer ${currentUser.token}`
+        //     }
+        // });
 
-        if (!imageUploadResponse.ok) {
-            throw new Error('Failed to upload images');
-        }
+        // if (!imageUploadResponse.ok) {
+        //     throw new Error('Failed to upload images');
+        // }
 
-        const { imageUrls } = await imageUploadResponse.json();
+        // const { imageUrls } = await imageUploadResponse.json();
 
         // Create the auction
         const auctionData = {
@@ -108,14 +108,14 @@ async function createAuction(event) {
             startingPrice,
             currentPrice: startingPrice,
             endDate: endDate.toISOString(),
-            images: imageUrls,
+            images: imageFiles,
             location: location,
             seller: currentUser._id,
             status: 'active',
             itemID: generateUUID()
         };
 
-        const response = await fetch('/api/products', {
+        const response = await apiCall('/products', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
