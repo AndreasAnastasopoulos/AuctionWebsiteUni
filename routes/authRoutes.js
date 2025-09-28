@@ -4,6 +4,7 @@ const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs'); // Import bcrypt
 const User = require('../models/User');
 
 // Generate JWT Token
@@ -20,10 +21,12 @@ router.post('/signup', [
     body('username').isLength({ min: 3 }).trim(),
     body('email').isEmail().normalizeEmail(),
     body('password').isLength({ min: 6 }),
-    body('fullName').notEmpty().trim(),
-    body('phone').notEmpty().trim(),
-    body('address').notEmpty().trim(),
-    body('ssn').notEmpty().trim()
+    body('firstName').notEmpty().trim(), // Added validation for firstName
+    body('lastName').notEmpty().trim(), // Added validation for lastName
+    body('phone').notEmpty().trim(), // Added validation for phone
+    body('address').notEmpty().trim(), // Added validation for address
+    body('country').notEmpty().trim(), // Added validation for country
+    body('ssn').notEmpty().trim() // Added validation for ssn
 ], async (req, res) => {
     // Check validation errors
     const errors = validationResult(req);
@@ -34,57 +37,65 @@ router.post('/signup', [
         });
     }
 
-    const { username, email, password, fullName, phone, address, ssn, location } = req.body;
+    const { username, email, password, firstName, lastName, phone, address, country, ssn, location } = req.body;
 
     try {
         // Check if user already exists
-        const existingUser = await User.findOne({
-            $or: [{ username }, { email }]
-        });
+        let user = await User.findOne({ $or: [{ username }, { email }] });
 
-        if (existingUser) {
+        if (user) {
             return res.status(400).json({
                 success: false,
-                message: 'Username or email already exists'
+                message: 'User already exists'
             });
         }
 
-        // Create user data object
-        const userData = {
+        // Create new user
+        user = new User({
             username,
             email,
             password,
-            fullName,
+            firstName,
+            lastName,
             phone,
             address,
+            country,
             ssn,
-            role: 'bidder', // Default role after signup
-            status: 'pending' // Requires admin approval
-        };
+            location,
+        });
 
-        // Add location if provided
-        if (location && location.coordinates) {
-            userData.location = location;
-        }
+        // Hash password
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(password, salt);
 
-        // Create new user
-        const user = await User.create(userData);
+        await user.save();
+
+        // Generate token
+        const token = generateToken(user.id);
 
         res.status(201).json({
             success: true,
-            message: 'Registration successful. Please wait for admin approval.',
+            message: 'User registered successfully',
+            token,
             user: {
-                id: user._id,
+                id: user.id,
                 username: user.username,
                 email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                phone: user.phone,
+                address: user.address,
+                country: user.country,
+                ssn: user.ssn,
+                role: user.role,
                 status: user.status
             }
         });
     } catch (error) {
-        console.error('Signup error:', error);
+        console.error(error.message);
         res.status(500).json({
             success: false,
-            message: 'Error creating user',
+            message: 'Server Error',
             error: error.message
         });
     }
@@ -98,6 +109,7 @@ router.post('/signin', [
     body('password').notEmpty()
 ], async (req, res) => {
     const errors = validationResult(req);
+
     if (!errors.isEmpty()) {
         return res.status(400).json({
             success: false,
@@ -109,52 +121,58 @@ router.post('/signin', [
 
     try {
         // Find user by username
-        const user = await User.findOne({ username });
+        let user = await User.findOne({ username });
 
         if (!user) {
-            return res.status(401).json({
+            return res.status(400).json({
                 success: false,
                 message: 'Invalid credentials'
             });
         }
 
-        // Check password
-        const isPasswordMatch = await user.comparePassword(password);
+        // Compare password
+        const isMatch = await bcrypt.compare(password, user.password);
 
-        if (!isPasswordMatch) {
-            return res.status(401).json({
+        if (!isMatch) {
+            return res.status(400).json({
                 success: false,
                 message: 'Invalid credentials'
             });
         }
-
-        // Check if account is active
-        if (user.status === 'suspended') {
+         // Check if user is suspended
+         if (user.status === 'suspended') {
             return res.status(403).json({
                 success: false,
-                message: 'Account is suspended. Please contact admin.'
+                message: 'Your account is suspended. Please contact support.'
             });
         }
 
         // Generate token
-        const token = generateToken(user._id);
+        const token = generateToken(user.id);
 
         res.json({
             success: true,
+            message: 'Logged in successfully',
             token,
             user: {
-                id: user._id,
+                id: user.id,
                 username: user.username,
                 email: user.email,
-                fullName: user.fullName,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                phone: user.phone,
+                address: user.address,
+                country: user.country,
+                ssn: user.ssn,
                 role: user.role,
                 status: user.status
             }
         });
     } catch (error) {
+        console.error(error.message);
         res.status(500).json({
             success: false,
-            message: 'Error signing in',
+            message: 'Server Error',
             error: error.message
         });
     }
