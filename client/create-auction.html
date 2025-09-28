@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="el">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="./css/style.css">
+    <title>Create New Auction - PAREDÓSE</title>
+</head>
+
+<body>
+    <div class="page-container">
+        <!-- Header with navigation -->
+        <header class="viewer-header">
+            <div class="nav-container">
+                <!-- Logo Section -->
+                <div class="nav-left">
+                    <a href="viewer.html" style="text-decoration: none;">
+                        <h1 class="logo" style="margin-top: 12px;">PAREDÓSE.</h1>
+                    </a>
+                </div>
+
+                <!-- Center Search Bar -->
+                <div class="nav-center">
+                    <div class="header-search-bar">
+                        <input type="text" id="headerProductSearch" placeholder="Search for auctions..."
+                            class="header-search-input">
+                        <button class="header-search-btn" onclick="searchProducts()">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right Section -->
+                <div class="nav-right">
+                    <div class="user-controls">
+                        <button class="icon-btn chat-btn" onclick="showChatHistory()" title="Messages">
+                            <i class="fas fa-comments"></i>
+                            <span class="notification-badge" style="display: none;">3</span>
+                        </button>
+                        <div class="user-dropdown">
+                            <button class="user-profile-btn" onclick="toggleUserMenu()">
+                                <span class="user-avatar">
+                                    <i class="fas fa-user"></i>
+                                </span>
+                                <i class="fas fa-chevron-down dropdown-arrow"></i>
+                            </button>
+                            <div class="dropdown-menu" id="userDropdownMenu" style="display: none;">
+                                <div class="dropdown-header">
+                                    <div class="user-info">
+                                        <span class="user-name" id="dropdownUserName">User Name</span>
+                                        <span class="user-status" id="dropdownUserStatus">
+                                            <i class="fas fa-check-circle"></i> Active
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="dropdown-divider"></div>
+                                <a href="user.html" class="dropdown-item">
+                                    <i class="fas fa-user-circle"></i> My Dashboard
+                                </a>
+                                <a href="#" onclick="showMyBids()" class="dropdown-item">
+                                    <i class="fas fa-gavel"></i> My Bids
+                                </a>
+                                <a href="#" onclick="showWatchlist()" class="dropdown-item">
+                                    <i class="fas fa-heart"></i> Watchlist
+                                </a>
+                                <a href="#" onclick="showSettings()" class="dropdown-item">
+                                    <i class="fas fa-cog"></i> Settings
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a href="#" onclick="logout()" class="dropdown-item logout-item">
+                                    <i class="fas fa-sign-out-alt"></i> Logout
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        </header>
+
+        <main class="main-content create-auction-page">
+            <div class="create-auction-wrapper">
+                <div class="create-auction-form">
+                    <h1 class="page-title">Create New Auction</h1>
+                    <form id="auctionForm" onsubmit="createAuction(event)">
+                        <!-- Basic Information -->
+                        <div class="form-section">
+                            <h2>Basic Information</h2>
+                            <div class="form-group">
+                                <label for="title">Title*</label>
+                                <input type="text" id="title" name="title" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="category">Category*</label>
+                                <select id="category" name="category" required>
+                                    <option value="">Select a category</option>
+                                    <option value="Electronics">Electronics</option>
+                                    <option value="Art">Art</option>
+                                    <option value="Jewelry">Jewelry</option>
+                                    <option value="Books">Books</option>
+                                    <option value="Collectibles">Collectibles</option>
+                                    <option value="Fashion">Fashion</option>
+                                    <option value="Home">Home & Garden</option>
+                                    <option value="Sports">Sports</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="description">Description*</label>
+                                <textarea id="description" name="description" rows="4" required></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Pricing -->
+                        <div class="form-section">
+                            <h2>Pricing</h2>
+                            <div class="form-group">
+                                <label for="startingPrice">Starting Price (€)*</label>
+                                <input type="number" id="startingPrice" name="startingPrice" min="0" step="0.01"
+                                    required>
+                            </div>
+                            <div class="form-group">
+                                <label for="reservePrice">Reserve Price (€)</label>
+                                <input type="number" id="reservePrice" name="reservePrice" min="0" step="0.01">
+                                <small>Optional. Minimum price you're willing to accept.</small>
+                            </div>
+                        </div>
+
+                        <!-- Duration -->
+                        <div class="form-section">
+                            <h2>Duration</h2>
+                            <div class="form-group">
+                                <label for="endDate">End Date and Time*</label>
+                                <input type="datetime-local" id="endDate" name="endDate" required>
+                            </div>
+                        </div>
+
+                        <!-- Images -->
+                        <div class="form-section">
+                            <h2>Images</h2>
+                            <div class="form-group">
+                                <label for="images">Upload Images*</label>
+                                <input type="file" id="images" name="images" multiple accept="image/*">
+                                <div id="imagePreview" class="image-preview"></div>
+                            </div>
+                        </div>
+
+                        <!-- Location -->
+                        <div class="form-section">
+                            <h2>Location</h2>
+                            <div class="form-group">
+                                <label for="location">Location*</label>
+                                <input type="text" id="location" name="location" placeholder="Search for location..."
+                                    required>
+                                <div id="locationMap" class="location-map"></div>
+                            </div>
+                        </div>
+
+                        <!-- Submit -->
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary"
+                                onclick="window.location.href='viewer.html'">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Create Auction</button>
+                        </div>
+                    </form>
+                </div>
+        </main>
+    </div>
+
+    <script src="./js/common.js"></script>
+    <script src="./js/create-auction.js"></script>
+</body>
+
+</html>
