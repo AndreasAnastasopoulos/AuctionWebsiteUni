@@ -39,10 +39,6 @@ const userSchema = new mongoose.Schema({
         coordinates: {
             type: [Number], // [longitude, latitude]
             required: false
-        },
-        address: {
-            type: String,
-            required: false
         }
     },
     role: {
