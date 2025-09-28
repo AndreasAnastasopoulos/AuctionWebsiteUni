@@ -81,14 +81,21 @@ async function handleSignUp(event) {
         return;
     }
 
+    // Split full name into first and last name
+    const nameParts = fullName.split(' ');
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts.slice(1).join(' ') || '';
+
     // Prepare request body
     const requestBody = {
         username,
-        password,
-        fullName,
         email,
+        password,
+        firstName, // Use extracted first name
+        lastName, // Use extracted last name
         phone,
         address,
+        country: cityCountry.split(',').pop().trim(), // Extract country from cityCountry
         ssn
     };
 
@@ -113,7 +120,7 @@ async function handleSignUp(event) {
 
         if (response.success) {
             // Redirect to waiting page
-            showWaiting();
+            // showWaiting();
         }
     } catch (error) {
         console.error('Signup error details:', error);
@@ -127,8 +134,12 @@ async function handleSignUp(event) {
     }
 }
 
-const signInForm = document.getElementById('signInForm');
-signInForm.addEventListener('submit', handleSignIn);
+document.addEventListener('DOMContentLoaded', function () {
+    const signInForm = document.getElementById('signInForm');
+    if (signInForm) {
+        signInForm.addEventListener('submit', handleSignIn);
+    }
+});
 
 async function handleSignIn(event) {
     event.preventDefault();
