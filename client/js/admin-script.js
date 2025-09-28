@@ -1,5 +1,5 @@
 // Admin Dashboard Script
-const API_URL = 'http://localhost:5001/api';
+const API_URL = 'https://localhost:5001/api';
 let authToken = localStorage.getItem('authToken');
 let currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
 
