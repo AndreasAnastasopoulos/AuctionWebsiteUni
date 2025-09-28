@@ -64,6 +64,13 @@ const productSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
+    itemID: { // Unique identifier for the item
+        type: String,
+        required: true,
+        unique: true,
+        trim: true
+    },
+
 }, 
 { timestamps: true });
 
@@ -71,5 +78,6 @@ const productSchema = new mongoose.Schema({
 productSchema.index({ status: 1, endDate: 1 });
 productSchema.index({ seller: 1 });
 productSchema.index({ category: 1 });
+productSchema.index({ itemID: 1 }); // Added index for itemID
 
 module.exports = mongoose.model('Product', productSchema);

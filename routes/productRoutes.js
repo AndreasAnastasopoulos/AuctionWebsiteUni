@@ -177,9 +177,10 @@ router.get('/:id', async (req, res) => {
 // @route   POST /api/products , protect, requireActive
 router.post('/', async (req, res) => {
     try {
-        const { name, title, description, category, startingPrice, endDate, images, seller } = req.body;
+        const { itemID, name, title, description, category, startingPrice, endDate, images, seller } = req.body;
 
         const product = await Product.create({
+            itemID,
             name,
             title,
             description,
