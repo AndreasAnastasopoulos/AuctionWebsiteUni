@@ -1,4 +1,3 @@
-
 let selectedLocation = { lat: 37.9838, lng: 23.7275 };
 let marker = null;
 let map = null;
@@ -130,8 +129,7 @@ async function createAuction(event) {
             throw new Error('Failed to create auction');
         }
 
-        const { product } = await response.json();
-
+       
         // Show success message
         showSuccessMessage('Auction created successfully!');
 
@@ -158,7 +156,7 @@ function showSuccessMessage(message) {
     const alertDiv = document.createElement('div');
     alertDiv.className = 'alert alert-success';
     alertDiv.textContent = message;
-    document.querySelector('.create-auction-form').prepend(alertDiv);
+    document.querySelector('.create-auction-form').append(alertDiv);
     setTimeout(() => alertDiv.remove(), 3000);
 }
 
@@ -166,7 +164,7 @@ function showErrorMessage(message) {
     const alertDiv = document.createElement('div');
     alertDiv.className = 'alert alert-error';
     alertDiv.textContent = message;
-    document.querySelector('.create-auction-form').prepend(alertDiv);
+    document.querySelector('.create-auction-form').append(alertDiv);
     setTimeout(() => alertDiv.remove(), 3000);
 }
 
