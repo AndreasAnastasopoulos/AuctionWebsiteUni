@@ -73,8 +73,9 @@ async function createAuction(event) {
         const location = document.getElementById('location').value;
         const imageFiles = document.getElementById('images').value;
         const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-
+        
         // Validate form
+
         if (!title || !category || !description || !startingPrice || !endDate || !location ) {
             throw new Error('Please fill in all required fields');
         }
@@ -110,7 +111,7 @@ async function createAuction(event) {
             endDate: endDate.toISOString(),
             images: imageFiles,
             location: location,
-            seller: currentUser._id,
+            seller: currentUser.id,
             status: 'active',
             itemID: generateUUID()
         };
@@ -119,12 +120,13 @@ async function createAuction(event) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${currentUser.token}`
+                // 'Authorization': `Bearer ${currentUser.token}`
             },
             body: JSON.stringify(auctionData)
         });
 
-        if (!response.ok) {
+        if (!response.success == true) {
+            console.error('Response not ok:', response);
             throw new Error('Failed to create auction');
         }
 

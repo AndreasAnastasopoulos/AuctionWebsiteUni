@@ -189,8 +189,7 @@ router.post('/', async (req, res) => {
             startingPrice,
             endDate,
             images,
-            seller
-            // seller: req.user._id
+            seller: seller
         });
 
         res.status(201).json({
