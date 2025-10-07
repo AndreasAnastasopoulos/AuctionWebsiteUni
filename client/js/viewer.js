@@ -27,41 +27,37 @@ async function loadProducts() {
 
 function displayProducts(products) {
     const productsGrid = document.querySelector('.products-grid');
-    if (!productsGrid) return;
     productsGrid.innerHTML = '';
 
     if (!products || products.length === 0) {
-        productsGrid.innerHTML = '<p class="no-products">No active auctions match your criteria.</p>';
+        productsGrid.innerHTML = '<p>No products found matching your criteria.</p>';
         return;
     }
 
     products.forEach(product => {
         const timeLeft = calculateTimeLeft(product.endDate);
-        const isEnded = timeLeft === 'Ended';
-        const productCard = document.createElement('div');
-        productCard.className = 'product-card';
+        
+        // Create an anchor tag that wraps the card
+        const productLink = document.createElement('a');
+        productLink.href = `product.html?id=${product._id}`;
+        productLink.className = 'product-card-link';
 
-        let actionSection = '';
-        if (isEnded) {
-            actionSection = '<div class="guest-info">Auction Ended</div>';
-        } else if (!currentUser) {
-            actionSection = `<div class="guest-info"><i class="fas fa-lock"></i> <a href="signin.html">Sign in</a> to bid</div>`;
-        } else if (currentUser.status === 'pending') {
-            actionSection = `<div class="pending-user-info"><i class="fas fa-clock"></i> Account Pending</div>`;
-        } else if (currentUser.status === 'active') {
-            actionSection = `<div class="product-bid-section"><button class="bid-button" onclick="showBidModal('${product._id}', ${product.currentPrice})"><i class="fas fa-gavel"></i> Place Bid</button></div>`;
-        }
-
-        productCard.innerHTML = `
-            <div class="product-image">${product.images && product.images[0] ? `<img src="${product.images[0]}" alt="${product.name}">` : ''}</div>
-            <div class="product-info">
-                <div class="product-category">${product.category}</div>
-                <h3 class="product-title">${product.name}</h3>
-                <div class="current-bid">$${product.currentPrice.toFixed(2)}</div>
-                <div class="bid-info">${product.bidCount} bid${product.bidCount !== 1 ? 's' : ''} • ${timeLeft}</div>
-                ${actionSection}
-            </div>`;
-        productsGrid.appendChild(productCard);
+        const productCardHTML = `
+            <div class="product-card">
+                <div class="product-image">
+                    <img src="${product.images?.[0] || 'css/placeholder.png'}" alt="${product.name}">
+                </div>
+                <div class="product-info">
+                    <h3 class="product-title">${product.name}</h3>
+                    <p class="price">Current Bid: $${product.currentPrice.toFixed(2)}</p>
+                    <p class="time-left">${timeLeft}</p>
+                    <div class="bid-button-placeholder">View Details</div>
+                </div>
+            </div>
+        `;
+        
+        productLink.innerHTML = productCardHTML;
+        productsGrid.appendChild(productLink);
     });
 }
 
