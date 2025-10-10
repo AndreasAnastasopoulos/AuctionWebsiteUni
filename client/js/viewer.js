@@ -13,7 +13,7 @@ let userLocationMarker = null;
 // --- PRODUCT & BIDDING LOGIC ---
 async function loadProducts() {
     try {
-        const response = await apiCall('/api/products');
+        const response = await apiCall('/products');
         if (response.success) {
             // Map the products to ensure consistent structure
             window.allProducts = response.products.map(product => ({
