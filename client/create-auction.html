@@ -133,7 +133,48 @@
                             <div class="form-group">
                                 <label for="endDate">End Date and Time*</label>
                                 <input type="datetime-local" id="endDate" name="endDate" required>
+                                <small>Maximum auction time is one month.</small>
                             </div>
+                            <script>
+                                function formatDateForInput(date) {
+                                    const year = date.getFullYear();
+                                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                                    const day = String(date.getDate()).padStart(2, '0');
+                                    const hours = String(date.getHours()).padStart(2, '0');
+                                    const minutes = String(date.getMinutes()).padStart(2, '0');
+                                    return `${year}-${month}-${day}T${hours}:${minutes}`;
+                                }
+
+                                const endDateInput = document.getElementById('endDate');
+                                
+                                // Set minimum date to current date and time
+                                const now = new Date();
+                                endDateInput.min = formatDateForInput(now);
+                                
+                                // Set maximum date to 1 year from now
+                                const maxDate = new Date();
+                                maxDate.setFullYear(maxDate.getFullYear() + 1);
+                                endDateInput.max = formatDateForInput(maxDate);
+                                
+                                // Set default value to tomorrow at the current time
+                                const tomorrow = new Date();
+                                tomorrow.setDate(tomorrow.getDate() + 1);
+                                endDateInput.value = formatDateForInput(tomorrow);
+                                
+                                // Add event listener to validate selected date
+                                endDateInput.addEventListener('change', function() {
+                                    const selectedDate = new Date(this.value);
+                                    const currentDate = new Date();
+                                    
+                                    if (selectedDate < currentDate) {
+                                        alert('Please select a future date and time.');
+                                        this.value = formatDateForInput(tomorrow);
+                                    } else if (selectedDate > maxDate) {
+                                        alert('Please select a date within one year from today.');
+                                        this.value = formatDateForInput(tomorrow);
+                                    }
+                                });
+                            </script>
                         </div>
 
                         <!-- Images -->
