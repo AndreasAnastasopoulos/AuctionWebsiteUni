@@ -13,65 +13,173 @@ let userLocationMarker = null;
 // --- PRODUCT & BIDDING LOGIC ---
 async function loadProducts() {
     try {
-        const response = await apiCall('/products');
+        const response = await apiCall('/api/products');
         if (response.success) {
-            window.allProducts = response.products;
+            // Map the products to ensure consistent structure
+            window.allProducts = response.products.map(product => ({
+                _id: product._id,
+                name: product.name || product.title || 'Unnamed Item',
+                title: product.name || product.title || 'Unnamed Item', // Ensure title exists
+                description: product.description || '',
+                category: Array.isArray(product.category) ? product.category[0] : (product.category || 'Other'),
+                currentPrice: product.currentPrice || product.startingPrice || 0,
+                startingPrice: product.startingPrice || 0,
+                images: product.images || [],
+                endDate: product.endDate || product.auctionEndDate,
+                seller: product.seller || {},
+                bids: product.bids || [],
+                bidCount: product.bids?.length || 0,
+                location: product.location
+            }));
+
             allProductsDisplay = [...window.allProducts];
             filteredProducts = [...allProductsDisplay];
-            initializeProductsDisplay(); // This line was missing
+            initializeProductsDisplay();
         }
     } catch (error) {
         console.error('Error loading products:', error);
+        showError('Failed to load products. Please refresh the page.');
     }
 }
 
 function displayProducts(products) {
     const productsGrid = document.querySelector('.products-grid');
+    if (!productsGrid) return;
+
     productsGrid.innerHTML = '';
 
     if (!products || products.length === 0) {
-        productsGrid.innerHTML = '<p>No products found matching your criteria.</p>';
+        productsGrid.innerHTML = `
+            <div class="no-products-message">
+                <i class="fas fa-box-open" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
+                <p>No products found matching your criteria.</p>
+            </div>`;
         return;
     }
 
     products.forEach(product => {
         const timeLeft = calculateTimeLeft(product.endDate);
-        
-        // Create an anchor tag that wraps the card
-        const productLink = document.createElement('a');
-        productLink.href = `product.html?id=${product._id}`;
-        productLink.className = 'product-card-link';
+        const isEnded = timeLeft === 'Ended';
 
-        const productCardHTML = `
-            <div class="product-card">
-                <div class="product-image">
-                    <img src="${product.images?.[0] || 'css/placeholder.png'}" alt="${product.name}">
+        // Create product card element
+        const productCard = document.createElement('div');
+        productCard.className = 'product-card';
+        productCard.onclick = () => window.location.href = `product.html?id=${product._id}`;
+        productCard.style.cursor = 'pointer';
+
+        // Determine image source
+        let imageSrc = 'css/placeholder.png';
+        if (product.images && product.images.length > 0) {
+            // Handle both base64 and URL images
+            const firstImage = product.images[0];
+            if (firstImage.startsWith('data:') || firstImage.startsWith('http') || firstImage.startsWith('/')) {
+                imageSrc = firstImage;
+            } else {
+                // If it's a relative path, ensure it's properly formatted
+                imageSrc = firstImage.startsWith('/') ? firstImage : `/${firstImage}`;
+            }
+        }
+
+        productCard.innerHTML = `
+            <div class="product-image">
+                <img src="${imageSrc}" 
+                     alt="${product.name || product.title}" 
+                     onerror="this.onerror=null; this.src='css/placeholder.png';"
+                     style="width: 100%; height: 200px; object-fit: cover;">
+                ${isEnded ? '<div class="auction-ended-badge">Ended</div>' : ''}
+            </div>
+            <div class="product-info">
+                <h3 class="product-title">${product.name || product.title}</h3>
+                <div class="product-meta">
+                    <span class="product-category">
+                        <i class="fas fa-tag"></i> ${product.category}
+                    </span>
                 </div>
-                <div class="product-info">
-                    <h3 class="product-title">${product.name}</h3>
-                    <p class="price">Current Bid: $${product.currentPrice.toFixed(2)}</p>
-                    <p class="time-left">${timeLeft}</p>
-                    <div class="bid-button-placeholder">View Details</div>
+                <div class="product-pricing">
+                    <p class="current-bid">
+                        <span class="label">Current Bid:</span>
+                        <span class="price">€${(product.currentPrice || 0).toFixed(2)}</span>
+                    </p>
+                    ${product.bidCount > 0 ? `
+                        <p class="bid-count">
+                            <i class="fas fa-gavel"></i> ${product.bidCount} bid${product.bidCount !== 1 ? 's' : ''}
+                        </p>
+                    ` : ''}
+                </div>
+                <div class="product-footer">
+                    <p class="time-left ${isEnded ? 'ended' : ''}">
+                        <i class="fas fa-clock"></i> ${timeLeft}
+                    </p>
+                    <button class="view-details-btn" onclick="event.stopPropagation(); window.location.href='product.html?id=${product._id}'">
+                        View Details <i class="fas fa-arrow-right"></i>
+                    </button>
                 </div>
             </div>
         `;
-        
-        productLink.innerHTML = productCardHTML;
-        productsGrid.appendChild(productLink);
+
+        productsGrid.appendChild(productCard);
     });
 }
 
+function calculateTimeLeft(endDate) {
+    if (!endDate) return 'No end date';
+
+    const end = new Date(endDate);
+    const now = new Date();
+    const diff = end - now;
+
+    if (diff <= 0) return 'Ended';
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+    if (days > 0) return `${days}d ${hours}h left`;
+    if (hours > 0) return `${hours}h ${minutes}m left`;
+    return `${minutes}m left`;
+}
+
+function getTimeAgo(date) {
+    const seconds = Math.floor((new Date() - date) / 1000);
+
+    let interval = Math.floor(seconds / 31536000);
+    if (interval > 1) return interval + " years ago";
+
+    interval = Math.floor(seconds / 2592000);
+    if (interval > 1) return interval + " months ago";
+
+    interval = Math.floor(seconds / 86400);
+    if (interval > 1) return interval + " days ago";
+
+    interval = Math.floor(seconds / 3600);
+    if (interval > 1) return interval + " hours ago";
+
+    interval = Math.floor(seconds / 60);
+    if (interval > 1) return interval + " minutes ago";
+
+    return "Just now";
+}
+
 function showBidModal(productId, currentPrice) {
-    if (!currentUser || currentUser.status !== 'active') {
-        alert(currentUser && currentUser.status === 'pending' ? 'Your account is pending approval.' : 'Please sign in to place bids.');
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+
+    if (!currentUser) {
+        alert('Please sign in to place bids.');
+        window.location.href = 'signin.html';
         return;
     }
+
+    if (currentUser.status === 'pending') {
+        alert('Your account is pending approval. You cannot place bids yet.');
+        return;
+    }
+
     currentProductId = productId;
     document.getElementById('currentPrice').textContent = currentPrice.toFixed(2);
     const bidAmountElement = document.getElementById('bidAmount');
     bidAmountElement.value = '';
     bidAmountElement.min = (currentPrice + 0.01).toFixed(2);
-    bidAmountElement.placeholder = `Min: $${(currentPrice + 0.01).toFixed(2)}`;
+    bidAmountElement.placeholder = `Min: €${(currentPrice + 0.01).toFixed(2)}`;
     loadBidHistory(productId);
     document.getElementById('bidModal').style.display = 'block';
     setTimeout(() => bidAmountElement.focus(), 100);
@@ -87,7 +195,7 @@ async function submitBid() {
     const currentPrice = parseFloat(document.getElementById('currentPrice').textContent);
 
     if (!bidAmount || isNaN(bidAmount) || bidAmount <= currentPrice) {
-        alert(`Your bid must be a valid number higher than the current bid of $${currentPrice.toFixed(2)}`);
+        alert(`Your bid must be a valid number higher than the current bid of €${currentPrice.toFixed(2)}`);
         return;
     }
 
@@ -96,16 +204,17 @@ async function submitBid() {
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Placing Bid...';
 
     try {
-        const response = await apiCall('/bids', {
+        const response = await apiCall('/api/bids', {
             method: 'POST',
             body: JSON.stringify({ productId: currentProductId, amount: bidAmount })
         });
         if (response.success) {
             closeBidModal();
-            loadProducts(); // Refresh products to show new price
+            showSuccess('Bid placed successfully!');
+            await loadProducts(); // Refresh products to show new price
         }
     } catch (error) {
-        alert(error.message || 'Failed to place bid.');
+        showError(error.message || 'Failed to place bid.');
     } finally {
         submitBtn.disabled = false;
         submitBtn.innerHTML = 'Submit Bid';
@@ -115,15 +224,15 @@ async function submitBid() {
 async function loadBidHistory(productId) {
     const bidHistoryContainer = document.getElementById('bidHistory');
     try {
-        const response = await apiCall(`/bids/product/${productId}`);
+        const response = await apiCall(`/api/bids/product/${productId}`);
         if (response.success && response.bids && response.bids.length > 0) {
             bidHistoryContainer.innerHTML = response.bids.slice(0, 5).map(bid => `
                 <div class="bid-history-item">
                     <div>
-                        <div class="bid-user">${bid.user.username}</div>
+                        <div class="bid-user">${bid.user?.username || 'Anonymous'}</div>
                         <div class="bid-time">${getTimeAgo(new Date(bid.timestamp))}</div>
                     </div>
-                    <div class="bid-amount">$${bid.amount.toFixed(2)}</div>
+                    <div class="bid-amount">€${bid.amount.toFixed(2)}</div>
                 </div>`).join('');
         } else {
             bidHistoryContainer.innerHTML = '<div class="no-bids">No bids yet. Be the first!</div>';
@@ -150,14 +259,58 @@ function updatePagination() {
     const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
     const pageNumbers = document.getElementById('pageNumbers');
     if (!pageNumbers) return;
+
     pageNumbers.innerHTML = '';
-    for (let i = 1; i <= totalPages; i++) {
+
+    // Show max 5 page numbers at a time
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, startPage + 4);
+
+    if (endPage - startPage < 4) {
+        startPage = Math.max(1, endPage - 4);
+    }
+
+    // Add first page and ellipsis if needed
+    if (startPage > 1) {
+        const firstBtn = document.createElement('button');
+        firstBtn.className = 'page-number';
+        firstBtn.textContent = '1';
+        firstBtn.onclick = () => goToPage(1);
+        pageNumbers.appendChild(firstBtn);
+
+        if (startPage > 2) {
+            const ellipsis = document.createElement('span');
+            ellipsis.className = 'page-ellipsis';
+            ellipsis.textContent = '...';
+            pageNumbers.appendChild(ellipsis);
+        }
+    }
+
+    // Add page numbers
+    for (let i = startPage; i <= endPage; i++) {
         const button = document.createElement('button');
         button.className = `page-number ${i === currentPage ? 'active' : ''}`;
         button.textContent = i;
         button.onclick = () => goToPage(i);
         pageNumbers.appendChild(button);
     }
+
+    // Add last page and ellipsis if needed
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            const ellipsis = document.createElement('span');
+            ellipsis.className = 'page-ellipsis';
+            ellipsis.textContent = '...';
+            pageNumbers.appendChild(ellipsis);
+        }
+
+        const lastBtn = document.createElement('button');
+        lastBtn.className = 'page-number';
+        lastBtn.textContent = totalPages;
+        lastBtn.onclick = () => goToPage(totalPages);
+        pageNumbers.appendChild(lastBtn);
+    }
+
     document.getElementById('prevBtn').disabled = currentPage === 1;
     document.getElementById('nextBtn').disabled = currentPage === totalPages || totalPages === 0;
 }
@@ -182,23 +335,44 @@ function updateResultsInfo() {
 }
 
 function applyFilters() {
-    const searchTerm = (document.getElementById('productSearch')?.value || '').toLowerCase();
-    const category = document.getElementById('categoryFilter')?.value || '';
-    const sortOption = document.getElementById('priceSort')?.value || '';
+    const minPriceEl = document.getElementById('minPrice');
+    const maxPriceEl = document.getElementById('maxPrice');
+    const timeFilterEl = document.getElementById('timeFilter');
 
-    filteredProducts = allProductsDisplay.filter(p =>
-        (p.title.toLowerCase().includes(searchTerm) || p.category.toLowerCase().includes(searchTerm)) &&
-        (category === '' || p.category === category)
-    );
+    let filtered = [...allProductsDisplay];
 
-    switch (sortOption) {
-        case 'low-high': filteredProducts.sort((a, b) => a.currentPrice - b.currentPrice); break;
-        case 'high-low': filteredProducts.sort((a, b) => b.currentPrice - a.currentPrice); break;
-        case 'ending-soon': filteredProducts.sort((a, b) => new Date(a.endDate) - new Date(b.endDate)); break;
+    // Apply price range filter
+    if (minPriceEl && minPriceEl.value) {
+        const minPrice = parseFloat(minPriceEl.value);
+        filtered = filtered.filter(p => (p.currentPrice || 0) >= minPrice);
     }
 
+    if (maxPriceEl && maxPriceEl.value) {
+        const maxPrice = parseFloat(maxPriceEl.value);
+        filtered = filtered.filter(p => (p.currentPrice || 0) <= maxPrice);
+    }
+
+    // Apply time filter
+    if (timeFilterEl && timeFilterEl.value) {
+        const days = parseInt(timeFilterEl.value);
+        const maxDate = new Date();
+        maxDate.setDate(maxDate.getDate() + days);
+
+        filtered = filtered.filter(p => {
+            const endDate = new Date(p.endDate);
+            return endDate <= maxDate && endDate > new Date();
+        });
+    }
+
+    filteredProducts = filtered;
     currentPage = 1;
     displayProductsWithPagination();
+
+    // Apply any existing sort
+    const priceSort = document.getElementById('priceSort');
+    if (priceSort && priceSort.value) {
+        sortProducts();
+    }
 }
 
 // --- MAP LOGIC ---
@@ -207,12 +381,13 @@ function toggleMapView() {
     mapVisible = !mapVisible;
     mapSection.style.display = mapVisible ? 'block' : 'none';
     document.getElementById('mapToggleText').textContent = mapVisible ? 'Hide Map' : 'Show Map';
+
     if (mapVisible && !productsMap) {
         setTimeout(() => {
             initProductsMap();
             addProductMarkersToMap(window.allProducts);
         }, 100);
-    } else if (mapVisible) {
+    } else if (mapVisible && productsMap) {
         productsMap.invalidateSize();
     }
 }
@@ -220,41 +395,79 @@ function toggleMapView() {
 function initProductsMap() {
     if (productsMap) return;
     productsMap = L.map('products-map').setView([37.9838, 23.7275], 6);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(productsMap);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(productsMap);
 }
 
 function addProductMarkersToMap(products) {
     if (!productsMap) return;
+
+    // Clear existing markers
     productMarkers.forEach(marker => productsMap.removeLayer(marker));
     productMarkers = [];
+
     products.forEach(product => {
-        if (product.seller?.location?.coordinates) {
-            const [lng, lat] = product.seller.location.coordinates;
-            const marker = L.marker([lat, lng]).bindPopup(`<h4>${product.title}</h4><p>$${product.currentPrice.toFixed(2)}</p>`);
-            marker.addTo(productsMap);
-            productMarkers.push(marker);
+        if (product.location) {
+            let lat, lng;
+
+            // Handle different location formats
+            if (product.seller?.location?.coordinates) {
+                [lng, lat] = product.seller.location.coordinates;
+            } else if (typeof product.location === 'string' && product.location.includes(',')) {
+                [lat, lng] = product.location.split(',').map(coord => parseFloat(coord.trim()));
+            }
+
+            if (lat && lng && !isNaN(lat) && !isNaN(lng)) {
+                const marker = L.marker([lat, lng])
+                    .bindPopup(`
+                        <div style="text-align: center;">
+                            <h4>${product.name || product.title}</h4>
+                            <p>€${(product.currentPrice || 0).toFixed(2)}</p>
+                            <a href="product.html?id=${product._id}" style="color: #3498db;">View Details</a>
+                        </div>
+                    `);
+                marker.addTo(productsMap);
+                productMarkers.push(marker);
+            }
         }
     });
+
     if (productMarkers.length > 0) {
-        productsMap.fitBounds(L.featureGroup(productMarkers).getBounds().pad(0.1));
+        const group = L.featureGroup(productMarkers);
+        productsMap.fitBounds(group.getBounds().pad(0.1));
     }
 }
 
 // --- INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
-    // This check was too strict and blocked guest viewers.
-    // The page will now load for everyone, and other functions will handle
-    // showing/hiding content based on whether a user is logged in.
-
-    // updateAuthenticatedHeader(); // This function is not defined, so it's commented out.
     loadProducts();
 
-    // Event listeners for filters
-    // The search input in the header has a different ID.
-    document.getElementById('headerProductSearch')?.addEventListener('input', applyFilters);
-    // These filters do not exist in the provided HTML.
-    // document.getElementById('categoryFilter')?.addEventListener('change', applyFilters);
-    // document.getElementById('priceSort')?.addEventListener('change', applyFilters);
+    // Initialize back to top button
+    const backToTopButton = document.querySelector('.back-to-top');
+    if (backToTopButton) {
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                backToTopButton.style.display = 'block';
+            } else {
+                backToTopButton.style.display = 'none';
+            }
+        });
+
+        backToTopButton.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
+
+    // Set up enter key for search
+    const searchInput = document.getElementById('headerProductSearch');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchProducts();
+            }
+        });
+    }
 });
 
 // Toggle advanced filters
@@ -267,20 +480,18 @@ function toggleAdvancedFilters() {
 
 // Clear all filters
 function clearFilters() {
-    const categoryEl = document.getElementById('categoryFilter');
-    const sortEl = document.getElementById('priceSort');
-    const searchEl = document.getElementById('productSearch');
     const minPriceEl = document.getElementById('minPrice');
     const maxPriceEl = document.getElementById('maxPrice');
     const timeFilterEl = document.getElementById('timeFilter');
+    const priceSortEl = document.getElementById('priceSort');
+    const searchEl = document.getElementById('headerProductSearch');
     const advancedEl = document.getElementById('advancedFilters');
 
-    if (categoryEl) categoryEl.value = '';
-    if (sortEl) sortEl.value = '';
-    if (searchEl) searchEl.value = '';
     if (minPriceEl) minPriceEl.value = '';
     if (maxPriceEl) maxPriceEl.value = '';
     if (timeFilterEl) timeFilterEl.value = '';
+    if (priceSortEl) priceSortEl.value = '';
+    if (searchEl) searchEl.value = '';
 
     filteredProducts = [...allProductsDisplay];
     currentPage = 1;
@@ -292,29 +503,21 @@ function clearFilters() {
 
 // Search products
 function searchProducts() {
-    // Sync all search inputs
     const headerSearchInput = document.getElementById('headerProductSearch');
-    const productSearchInput = document.getElementById('productSearch');
-    const mobileSearchInput = document.querySelector('.mobile-search-input');
+    const searchTerm = (headerSearchInput?.value || '').toLowerCase();
 
-    // Get search term from any of the inputs
-    const searchTerm = (productSearchInput?.value ||
-        headerSearchInput?.value ||
-        mobileSearchInput?.value || '').toLowerCase();
-
-    // Sync all inputs
-    if (headerSearchInput) headerSearchInput.value = searchTerm;
-    if (productSearchInput) productSearchInput.value = searchTerm;
-    if (mobileSearchInput) mobileSearchInput.value = searchTerm;
-
-    // Perform the search
     if (searchTerm === '') {
         filteredProducts = [...allProductsDisplay];
     } else {
-        filteredProducts = allProductsDisplay.filter(product =>
-            product.title.toLowerCase().includes(searchTerm) ||
-            product.category.toLowerCase().includes(searchTerm)
-        );
+        filteredProducts = allProductsDisplay.filter(product => {
+            const name = (product.name || product.title || '').toLowerCase();
+            const description = (product.description || '').toLowerCase();
+            const category = (product.category || '').toLowerCase();
+
+            return name.includes(searchTerm) ||
+                description.includes(searchTerm) ||
+                category.includes(searchTerm);
+        });
     }
 
     currentPage = 1;
@@ -352,6 +555,7 @@ function filterProducts() {
 }
 
 // Sort products
+// Sort products
 function sortProducts() {
     const priceSort = document.getElementById('priceSort');
     if (!priceSort) return;
@@ -360,21 +564,21 @@ function sortProducts() {
 
     switch (sortOption) {
         case 'low-high':
-            filteredProducts.sort((a, b) => a.currentPrice - b.currentPrice);
+            filteredProducts.sort((a, b) => (a.currentPrice || 0) - (b.currentPrice || 0));
             break;
         case 'high-low':
-            filteredProducts.sort((a, b) => b.currentPrice - a.currentPrice);
+            filteredProducts.sort((a, b) => (b.currentPrice || 0) - (a.currentPrice || 0));
             break;
         case 'ending-soon':
             filteredProducts.sort((a, b) => new Date(a.endDate) - new Date(b.endDate));
             break;
         case 'most-bids':
-            filteredProducts.sort((a, b) => b.bidCount - a.bidCount);
+            filteredProducts.sort((a, b) => (b.bidCount || 0) - (a.bidCount || 0));
             break;
         default:
             // Reset to original order
             filteredProducts = [...allProductsDisplay];
-            filterProducts(); // Reapply filters
+            searchProducts(); // Reapply search if any
             return;
     }
 
@@ -388,29 +592,23 @@ function filterByCategory(category) {
     const categoryButtons = document.querySelectorAll('.category-btn');
     categoryButtons.forEach(btn => {
         btn.classList.remove('active');
-        const btnCategory = btn.querySelector('span')?.textContent || '';
-        if ((category === '' && btnCategory === 'All') ||
-            btnCategory === category) {
+        const btnText = btn.querySelector('span')?.textContent || '';
+        if ((category === '' && btnText === 'All') || btnText === category) {
             btn.classList.add('active');
         }
     });
-
-    // Update the category filter dropdown to match
-    const categoryFilter = document.getElementById('categoryFilter');
-    if (categoryFilter) {
-        categoryFilter.value = category;
-    }
 
     // Apply the filter
     if (category === '') {
         filteredProducts = [...allProductsDisplay];
     } else {
-        filteredProducts = allProductsDisplay.filter(product =>
-            product.category === category
-        );
+        filteredProducts = allProductsDisplay.filter(product => {
+            const productCategory = Array.isArray(product.category) ?
+                product.category[0] : product.category;
+            return productCategory === category;
+        });
     }
 
-    // Reset to first page and display
     currentPage = 1;
     displayProductsWithPagination();
 
@@ -602,49 +800,15 @@ function closeChatHistory() {
 
 // Placeholder functions for user menu items
 function showMyBids() {
-    alert(`My Bids Dashboard
-
- 📊 Active Bids: 5
- 🏆 Won Auctions: 2
- ⏰ Ending Soon: 3
-
- This feature is coming soon!
- You'll be able to:
- • Track all your active bids
- • See outbid notifications
- • View bidding history
- • Manage auto-bidding settings`);
+    alert('My Bids feature coming soon!');
 }
 
 function showWatchlist() {
-    alert(`My Watchlist
-
- ❤️ Watched Items: 12
- 🔔 Price Alerts: 3
- 📈 Trending in Watchlist: Electronics
-
- This feature is coming soon!
- You'll be able to:
- • Save items to watch
- • Get notifications when bidding starts
- • Set price alerts
- • Organize items into collections`);
+    alert('Watchlist feature coming soon!');
 }
 
 function showSettings() {
-    alert(`Account Settings
-
- 🔔 Notifications: Email & Push
- 🌍 Language: English
- 💳 Payment Methods: 2 saved
- 🔒 Privacy: Standard
-
- This feature is coming soon!
- You'll be able to:
- • Manage notification preferences
- • Update payment methods
- • Change privacy settings
- • Configure bidding preferences`);
+    alert('Settings feature coming soon!');
 }
 
 // Back to Top Button
@@ -667,4 +831,27 @@ function initializeBackToTop() {
             });
         });
     }
+}
+
+// Helper functions
+function showSuccess(message) {
+    const alert = document.createElement('div');
+    alert.className = 'alert alert-success';
+    alert.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+    document.body.appendChild(alert);
+
+    setTimeout(() => {
+        alert.remove();
+    }, 3000);
+}
+
+function showError(message) {
+    const alert = document.createElement('div');
+    alert.className = 'alert alert-error';
+    alert.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+    document.body.appendChild(alert);
+
+    setTimeout(() => {
+        alert.remove();
+    }, 5000);
 }
