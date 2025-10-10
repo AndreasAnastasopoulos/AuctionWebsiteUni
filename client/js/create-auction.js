@@ -70,7 +70,7 @@ async function createAuction(event) {
         const reservePrice = parseFloat(document.getElementById('reservePrice').value) || startingPrice;
         const endDate = new Date(document.getElementById('endDate').value);
         const location = document.getElementById('location').value;
-        const imageFiles = document.getElementById('images').value;
+        const imageFiles = document.getElementById('images').files; // Correctly get FileList object
         const currentUser = JSON.parse(localStorage.getItem('currentUser'));
         
         // Validate form
@@ -79,26 +79,30 @@ async function createAuction(event) {
             throw new Error('Please fill in all required fields');
         }
 
+        if (imageFiles.length === 0) {
+            throw new Error('Please upload at least one image.');
+        }
+
         // Create FormData for images
         const formData = new FormData();
-        Array.from(imageFiles).forEach((file, index) => {
+        Array.from(imageFiles).forEach((file) => {
             formData.append('images', file);
         });
 
-        // // Upload images first
-        // const imageUploadResponse = await fetch('/api/upload', {
-        //     method: 'POST',
-        //     body: formData,
-        //     headers: {
-        //         'Authorization': `Bearer ${currentUser.token}`
-        //     }
-        // });
+        // Upload images first
+        const imageUploadResponse = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData,
+            // headers: { // Uncomment if your upload endpoint requires auth
+            //     'Authorization': `Bearer ${currentUser.token}`
+            // }
+        });
 
-        // if (!imageUploadResponse.ok) {
-        //     throw new Error('Failed to upload images');
-        // }
+        if (!imageUploadResponse.ok) {
+            throw new Error('Failed to upload images');
+        }
 
-        // const { imageUrls } = await imageUploadResponse.json();
+        const { imageUrls } = await imageUploadResponse.json();
 
         // Create the auction
         const auctionData = {
@@ -108,7 +112,7 @@ async function createAuction(event) {
             startingPrice,
             currentPrice: startingPrice,
             endDate: endDate.toISOString(),
-            images: imageFiles,
+            images: imageUrls, // Use the URLs from the upload response
             location: location,
             seller: currentUser.id,
             status: 'active',
@@ -135,7 +139,7 @@ async function createAuction(event) {
 
         // Redirect to the new auction page after 2 seconds
         setTimeout(() => {
-            window.location.href = `viewer.html?product=${product._id}`;
+            window.location.href = `viewer.html?product=${response.product._id}`;
         }, 2000);
 
     } catch (error) {

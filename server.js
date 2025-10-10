@@ -34,6 +34,9 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files (HTML, CSS, JS) from the 'client' directory
 app.use(express.static(path.join(__dirname, 'client')));
 
+// Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, 'public')));
+
 // Import routes
 const authRoutes = require('./routes/authRoutes.js');
 const userRoutes = require('./routes/userRoutes.js');
@@ -47,6 +50,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/bids', bidRoutes);
 app.use('/api', recommendationRoutes);
 app.use('/api/interactions', interactionRoutes);
+app.use('/api/upload', require('./routes/uploadRoutes')); // Add this line
 
 // DB reference for recommendations
 mongoose.connection.once('open', () => {
