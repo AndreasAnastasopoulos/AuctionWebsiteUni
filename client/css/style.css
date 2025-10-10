@@ -1333,32 +1333,31 @@ h3 {
 }
 
 .product-info {
-    padding: 1rem;
+    padding: 0.75rem;
     min-width: 0;
-    /* Prevents overflow */
 }
 
 @media (min-width: 768px) {
     .product-info {
-        padding: 1.5rem;
+        padding: 1rem;
     }
 }
 
 .product-title {
+    font-size: 1rem;
     margin-bottom: 0.5rem;
     word-wrap: break-word;
     overflow-wrap: break-word;
 }
 
 .current-bid {
-    font-size: var(--font-sizeP-H3);
-    line-height: var(--line-height-P-H3);
+    font-size: 1.1rem;
     font-weight: bold;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.25rem;
 }
 
 .bid-info {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: var(--TEXT-COLOR);
 }
 
@@ -2499,10 +2498,13 @@ footer .container>p {
 }
 
 .location-map {
-    height: 300px;
+    width: 100%;
+    height: 400px;
     margin-top: 1rem;
     border-radius: var(--border-radius);
     overflow: hidden;
+    z-index: 1;
+    position: relative;
 }
 
 .form-actions {
@@ -2894,4 +2896,504 @@ footer .container>p {
 .product-image img[src*="placeholder"] {
     padding: 20px;
     background: #f5f5f5;
+}
+
+/* ============================================
+   PRODUCT DETAILS PAGE STYLES
+   ============================================ */
+
+.product-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    padding: 2rem 0;
+}
+
+.product-details-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    gap: 1rem;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid var(--PRIMARY-COLOR);
+    border-top: 4px solid var(--ACCENT-COLOR);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    color: var(--TEXT-COLOR);
+    font-size: 1.1rem;
+}
+
+.error-state {
+    text-align: center;
+    padding: 3rem;
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+.error-state i {
+    font-size: 4rem;
+    color: var(--ACCENT-COLOR2);
+    margin-bottom: 1rem;
+}
+
+.error-state h2 {
+    color: var(--TEXT-COLOR);
+    margin-bottom: 1rem;
+}
+
+.error-state p {
+    color: #666;
+    margin-bottom: 2rem;
+}
+
+/* Product Details Grid */
+.product-details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    box-shadow: var(--box-shadow);
+}
+
+/* Product Gallery */
+.product-gallery {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.main-image {
+    width: 100%;
+    height: 500px;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    background: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.main-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.main-image img:hover {
+    transform: scale(1.05);
+}
+
+.image-thumbnails {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 0.75rem;
+}
+
+.thumbnail {
+    height: 100px;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.thumbnail:hover {
+    border-color: var(--ACCENT-COLOR);
+}
+
+.thumbnail.active {
+    border-color: var(--ACCENT-COLOR);
+}
+
+.thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Product Info Section */
+.product-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.product-header {
+    border-bottom: 2px solid var(--PRIMARY-COLOR);
+    padding-bottom: 1rem;
+}
+
+.category-badges {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.category-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--ACCENT-COLOR);
+    color: white;
+    border-radius: 20px;
+    font-size: 0.9rem;
+}
+
+.product-title {
+    font-size: 2rem;
+    color: var(--TEXT-COLOR);
+    margin: 0;
+}
+
+/* Auction Status */
+.auction-status {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, var(--PRIMARY-COLOR) 0%, #f0e5db 100%);
+    border-radius: var(--border-radius);
+}
+
+.auction-status > div {
+    text-align: center;
+}
+
+.auction-status .label {
+    display: block;
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
+.auction-status .value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--ACCENT-COLOR2);
+}
+
+.current-price .value {
+    font-size: 2rem;
+    color: var(--ACCENT-COLOR);
+}
+
+/* Bidding Section */
+.bidding-section {
+    background: #f9f9f9;
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    border: 2px solid var(--PRIMARY-COLOR);
+}
+
+.bid-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.bid-input-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--TEXT-COLOR);
+}
+
+.bid-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.currency-symbol {
+    position: absolute;
+    left: 1rem;
+    font-weight: bold;
+    color: var(--ACCENT-COLOR);
+    font-size: 1.2rem;
+}
+
+.bid-input-wrapper input {
+    width: 100%;
+    padding: 1rem 1rem 1rem 2.5rem;
+    font-size: 1.1rem;
+    border: 2px solid var(--PRIMARY-COLOR);
+    border-radius: var(--border-radius);
+    transition: border-color 0.3s ease;
+}
+
+.bid-input-wrapper input:focus {
+    outline: none;
+    border-color: var(--ACCENT-COLOR);
+}
+
+.min-bid-notice {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background: #fff3cd;
+    border-left: 4px solid #ffc107;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.btn-bid {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.auction-ended,
+.login-prompt,
+.owner-notice {
+    text-align: center;
+    padding: 2rem;
+    border-radius: var(--border-radius);
+}
+
+.auction-ended {
+    background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+}
+
+.auction-ended i {
+    font-size: 3rem;
+    color: var(--ACCENT-COLOR2);
+    margin-bottom: 1rem;
+}
+
+.login-prompt {
+    background: linear-gradient(135deg, var(--PRIMARY-COLOR) 0%, #f0e5db 100%);
+}
+
+.login-prompt i {
+    font-size: 3rem;
+    color: var(--ACCENT-COLOR);
+    margin-bottom: 1rem;
+}
+
+.owner-notice {
+    background: #d4edda;
+    border: 2px solid #28a745;
+}
+
+.owner-notice i {
+    color: #28a745;
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Product Details */
+.product-details {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.details-section,
+.seller-section,
+.map-section {
+    padding: 1.5rem;
+    background: #f9f9f9;
+    border-radius: var(--border-radius);
+}
+
+.details-section h3,
+.seller-section h3,
+.map-section h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--ACCENT-COLOR);
+    margin-bottom: 1rem;
+}
+
+.details-section p {
+    color: var(--TEXT-COLOR);
+    line-height: 1.6;
+}
+
+.seller-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.seller-name {
+    font-size: 1.1rem;
+    color: var(--TEXT-COLOR);
+}
+
+.seller-location {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #666;
+}
+
+.product-map {
+    height: 300px;
+    width: 100%;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    margin-top: 1rem;
+}
+
+/* Bid History */
+.bid-history-section {
+    padding: 1.5rem;
+    background: #f9f9f9;
+    border-radius: var(--border-radius);
+}
+
+.bid-history-section h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--ACCENT-COLOR);
+    margin-bottom: 1rem;
+}
+
+.bid-history-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.bid-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: white;
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+    border-left: 4px solid var(--ACCENT-COLOR);
+}
+
+.bid-item-user {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.bid-item-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--ACCENT-COLOR);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.bid-item-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.bid-item-name {
+    font-weight: 600;
+    color: var(--TEXT-COLOR);
+}
+
+.bid-item-time {
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.bid-item-amount {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--ACCENT-COLOR);
+}
+
+/* Similar Items */
+.similar-items-section {
+    margin-top: 3rem;
+    padding: 2rem;
+    background: white;
+    border-radius: var(--border-radius);
+}
+
+.similar-items-section h2,
+.similar-items-section h3 {
+    text-align: center;
+    color: var(--ACCENT-COLOR);
+    margin-bottom: 2rem;
+}
+
+.similar-items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .product-details-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .auction-status {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .product-page {
+        padding: 1rem 0;
+    }
+    
+    .product-details-container {
+        padding: 0 1rem;
+    }
+    
+    .product-details-grid {
+        padding: 1rem;
+        gap: 1.5rem;
+    }
+    
+    .main-image {
+        height: 300px;
+    }
+    
+    .product-title {
+        font-size: 1.5rem;
+    }
+    
+    .similar-items-grid {
+        grid-template-columns: 1fr;
+    }
 }

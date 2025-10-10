@@ -62,11 +62,8 @@ async function loadProductDetails(productId) {
             await trackInteraction(productId, 'view');
         }
 
-        const response = await apiCall(`/api/products/${productId}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${getCurrentUserToken()}`
-            }
+        const response = await apiCall(`/products/${productId}`, {
+            method: 'GET'
         });
 
         if (!response.success || !response.product) {
@@ -85,9 +82,11 @@ async function loadProductDetails(productId) {
         // Load additional components
         await Promise.all([
             loadBidHistory(productId),
-            loadSimilarItems(globals.currentProduct.category?.[0]),
-            loadSellerInfo(globals.currentProduct.sellerId)
+            loadSimilarItems(globals.currentProduct.category?.[0])
         ]);
+        
+        // Display seller info (already in product object)
+        displaySellerInfo(globals.currentProduct.seller);
 
         // Start auction timer if auction is still active
         if (new Date(globals.currentProduct.endDate) > new Date()) {
@@ -257,11 +256,8 @@ async function loadBidHistory(productId) {
 
 async function loadBidHistoryToContainer(productId, container) {
     try {
-        const response = await apiCall(`/api/bids/${productId}/history`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${getCurrentUserToken()}`
-            }
+        const response = await apiCall(`/bids/product/${productId}`, {
+            method: 'GET'
         });
 
         if (!response.success || !response.bids) {
@@ -274,14 +270,19 @@ async function loadBidHistoryToContainer(productId, container) {
         }
 
         const bidHistoryHTML = response.bids
-            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
             .map(bid => `
                 <div class="bid-item">
-                    <div class="bid-info">
-                        <span class="bid-amount">€${bid.amount.toFixed(2)}</span>
-                        <span class="bid-user">${bid.username}</span>
-                        <span class="bid-time">${formatTimeAgo(bid.timestamp)}</span>
+                    <div class="bid-item-user">
+                        <div class="bid-item-avatar">
+                            ${(bid.bidder?.username || 'Anonymous').charAt(0).toUpperCase()}
+                        </div>
+                        <div class="bid-item-details">
+                            <div class="bid-item-name">${bid.bidder?.username || 'Anonymous'}</div>
+                            <div class="bid-item-time">${formatTimeAgo(bid.createdAt)}</div>
+                        </div>
                     </div>
+                    <div class="bid-item-amount">€${bid.amount.toFixed(2)}</div>
                 </div>
             `)
             .join('');
@@ -301,29 +302,32 @@ async function loadSimilarItems(category) {
     if (!similarContainer) return;
 
     try {
-        const response = await apiCall(`/api/products/similar`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getCurrentUserToken()}`
-            },
-            body: JSON.stringify({
-                category,
-                currentProductId: globals.currentProduct._id,
-                limit: 4
-            })
+        const response = await apiCall(`/products?category=${category}&limit=4`, {
+            method: 'GET'
         });
 
-        if (!response.success || !response.products) {
+        if (!response || !Array.isArray(response)) {
             throw new Error('Could not fetch similar items');
         }
 
-        const similarItemsHTML = response.products
+        // Filter out the current product
+        const similarProducts = response
+            .filter(p => p._id !== globals.currentProduct._id)
+            .slice(0, 4);
+
+        if (similarProducts.length === 0) {
+            similarContainer.innerHTML = '<p>No similar items found</p>';
+            return;
+        }
+
+        const similarItemsHTML = similarProducts
             .map(product => `
-                <div class="similar-item">
-                    <a href="/product.html?id=${product._id}">
-                        <img src="${product.images[0] || '/images/placeholder.png'}" alt="${product.name}">
-                        <div class="similar-item-info">
+                <div class="product-card">
+                    <a href="product.html?id=${product._id}">
+                        <div class="product-image">
+                            <img src="${product.images?.[0] || 'css/placeholder.png'}" alt="${product.name}">
+                        </div>
+                        <div class="product-info">
                             <h4>${product.name}</h4>
                             <p class="price">€${product.currentPrice.toFixed(2)}</p>
                             <p class="time-left">${calculateTimeLeft(product.endDate)}</p>
@@ -333,11 +337,50 @@ async function loadSimilarItems(category) {
             `)
             .join('');
 
-        similarContainer.innerHTML = similarItemsHTML || '<p>No similar items found</p>';
+        similarContainer.innerHTML = similarItemsHTML;
 
     } catch (error) {
         console.error('Error loading similar items:', error);
         similarContainer.innerHTML = '<p class="error">Error loading similar items</p>';
+    }
+}
+
+function displaySellerInfo(seller) {
+    if (!seller) {
+        console.warn('No seller data provided');
+        return;
+    }
+
+    const sellerContainer = document.querySelector('#sellerInfo');
+    if (!sellerContainer) return;
+
+    const username = seller.username || 'Unknown Seller';
+    const rating = seller.rating || 0;
+    const totalSales = seller.totalSales || 0;
+    const ratingStars = '★'.repeat(Math.round(rating)) + '☆'.repeat(5 - Math.round(rating));
+
+    sellerContainer.innerHTML = `
+        <div class="seller-info">
+            <h3>Seller Information</h3>
+            <p class="seller-name">${username}</p>
+            <p class="seller-rating">${ratingStars} (${rating.toFixed(1)})</p>
+            <p class="seller-sales">Total Sales: ${totalSales}</p>
+            <button id="contactSeller" class="btn btn-secondary">
+                <i class="fas fa-envelope"></i> Contact Seller
+            </button>
+        </div>
+    `;
+
+    // Add contact seller functionality
+    const contactButton = document.querySelector('#contactSeller');
+    if (contactButton) {
+        contactButton.addEventListener('click', () => {
+            const chatModal = document.querySelector('#chatModal');
+            if (chatModal) {
+                chatModal.style.display = 'block';
+                loadChatHistory();
+            }
+        });
     }
 }
 
@@ -348,11 +391,8 @@ async function loadSellerInfo(sellerId) {
     if (!sellerContainer) return;
 
     try {
-        const response = await apiCall(`/api/users/${sellerId}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${getCurrentUserToken()}`
-            }
+        const response = await apiCall(`/users/${sellerId}`, {
+            method: 'GET'
         });
 
         if (!response.success || !response.user) {
@@ -931,22 +971,6 @@ async function submitBid(productId, bidAmount) {
 }
 
 // API call wrapper function
-async function apiCall(url, options = {}) {
-    try {
-        const response = await fetch(url, options);
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || 'Request failed');
-        }
-
-        return data;
-    } catch (error) {
-        console.error('API call error:', error);
-        throw error;
-    }
-}
-
 // Update user interface function
 function updateUserInterface(currentUser) {
     const userNavElement = document.querySelector('.user-nav');
@@ -975,12 +999,14 @@ function updateUserInterface(currentUser) {
 
 // Track interaction function (placeholder if not defined elsewhere)
 async function trackInteraction(productId, action) {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (!currentUser) return; // Skip if not logged in
+    
     try {
-        await apiCall('/api/interactions', {
+        await apiCall('/interactions', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getCurrentUserToken()}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 productId,

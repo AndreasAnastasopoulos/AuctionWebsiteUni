@@ -1,11 +1,10 @@
-// filepath: /Users/permi/Documents/code/DIT/6ο/tedi/ergasia/AuctionWebsiteUni/routes/uploadRoutes.js
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const router = express.Router();
 
-const uploadDir = './public/uploads/';
+const uploadDir = path.join(__dirname, '..', 'uploads');
 
 // Ensure upload directory exists
 if (!fs.existsSync(uploadDir)){

@@ -22,22 +22,28 @@ document.addEventListener('DOMContentLoaded', function () {
     endDateInput.min = tomorrowStr;
     endDateInput.max = maxDateStr;
 
-    // Initialize map
-    map = L.map('locationMap').setView([selectedLocation.lat, selectedLocation.lng], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
+    // Initialize map with a slight delay to ensure container is ready
+    setTimeout(() => {
+        try {
+            map = L.map('locationMap').setView([selectedLocation.lat, selectedLocation.lng], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
 
-    // Add marker on click
-    map.on('click', function(e) {
-        selectedLocation = e.latlng;
-        if (marker) {
-            marker.setLatLng(selectedLocation);
-        } else {
-            marker = L.marker(selectedLocation).addTo(map);
+            // Add marker on click
+            map.on('click', function(e) {
+                selectedLocation = e.latlng;
+                if (marker) {
+                    marker.setLatLng(selectedLocation);
+                } else {
+                    marker = L.marker(selectedLocation).addTo(map);
+                }
+                document.getElementById('location').value = `${selectedLocation.lat.toFixed(6)}, ${selectedLocation.lng.toFixed(6)}`;
+            });
+        } catch (error) {
+            console.error('Error initializing map:', error);
         }
-        document.getElementById('location').value = `${selectedLocation.lat.toFixed(6)}, ${selectedLocation.lng.toFixed(6)}`;
-    });
+    }, 100);
 
     // Handle image preview
     document.getElementById('images').addEventListener('change', function (e) {
